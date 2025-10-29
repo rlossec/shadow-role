@@ -1,11 +1,11 @@
 # Endpoints REST
 
-### Authentification (`/api/auth`)
+### Authentification (`/auth`)
 
-- `POST /api/auth/register` - Création de compte
-- `POST /api/auth/login` - Connexion
-- `GET /api/auth/me` - Profil utilisateur actuel
-- `POST /api/auth/refresh` - Renouvellement du token
+- `POST /auth/register` - Création de compte
+- `POST /auth/token` - Connexion (obtient access token)
+- `POST /auth/refresh` - Renouvellement du access token
+- `GET /auth/me` - Profil utilisateur actuel
 
 ### Lobby (`/api/lobby`)
 

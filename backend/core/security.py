@@ -48,6 +48,20 @@ def decode_access_token(token: str) -> dict:
         )
     return payload
 
+
+def decode_access_token_optional_expiry(token: str) -> dict:
+    """Decode token without checking expiry - used for refresh"""
+    try:
+        # decode without verifying expiry
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
+    except PyJWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return payload
+
 # --- FastAPI dependencies to get the current user ---
 
 async def get_current_user(
