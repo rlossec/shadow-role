@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
+from routers import authentication
 
 
 app = FastAPI(
@@ -20,14 +21,18 @@ app.add_middleware(
     allow_headers=settings.ALLOWED_HEADERS,
 )
 
+# Enregistrer les routers
+app.include_router(authentication.router)
+
+
+
 
 @app.get("/")
 def home():
-    return {"message": "Hello, FastAPI!"}
+    return {"message": "Shadow Role API", "version": "0.1.0"}
 
 
 if __name__ == "__main__":
     import uvicorn
-    import os
     uvicorn.run("main:app", host=settings.API_HOST, port=int(settings.API_PORT), reload=True)
 

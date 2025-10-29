@@ -44,18 +44,8 @@ Cette commande lance simultanément le backend, le frontend et la base de donné
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                # Point d’entrée FastAPI
-│   │   ├── api/
-│   │   │   ├── routes/
-│   │   │   │   ├── lobby.py       # CRUD sur les lobbies
-│   │   │   │   ├── player.py      # Connexion / gestion joueurs
-│   │   │   │   ├── suggestion.py  # Propositions des joueurs
-│   │   │   │   ├── game.py        # Logique de partie
-│   │   │   │   └── admin.py       # Fonctions d’administration
-│   │   │   └── websocket.py       # Gestion temps réel
+│   │   ├── routers/
 │   │   ├── core/
-│   │   │   ├── config.py          # Variables d’environnement
-│   │   │   ├── database.py        # Connexion DB / ORM
-│   │   │   └── security.py        # Authentification / Tokens
 │   │   ├── models/                # Modèles SQLAlchemy
 │   │   ├── schemas/               # Pydantic
 │   │   └── services/              # Logique métier
@@ -67,21 +57,8 @@ Cette commande lance simultanément le backend, le frontend et la base de donné
 │   │   ├── App.jsx
 │   │   ├── main.jsx
 │   │   ├── pages/
-│   │   │   ├── LobbyList.jsx
-│   │   │   ├── CreateLobby.jsx
-│   │   │   ├── JoinLobby.jsx
-│   │   │   ├── WaitingRoom.jsx
-│   │   │   ├── SuggestionPage.jsx
-│   │   │   ├── GameQuiSuisJe.jsx
-│   │   │   ├── GameMissionSecrete.jsx
-│   │   │   └── ResultPage.jsx
 │   │   ├── components/
-│   │   │   ├── PlayerList.jsx
-│   │   │   ├── RoleCard.jsx
-│   │   │   ├── Timer.jsx
-│   │   │   ├── NavBar.jsx
-│   │   │   └── ChatBox.jsx
-│   │   ├── api/                   # Appels à l’API backend
+│   │   ├── api/
 │   │   └── utils/
 │   ├── public/
 │   ├── package.json
