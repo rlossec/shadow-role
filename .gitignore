@@ -56,3 +56,9 @@ backend/uv.lock
 *.txt
 !env.example.txt
 !backend/env.example.txt
+
+# Frontend
+frontend/src/drafts/
+
+
+node_modules/
