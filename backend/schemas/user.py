@@ -1,6 +1,6 @@
-
+from datetime import datetime
 from pydantic import BaseModel, EmailStr
-
+from typing import Optional
 
 class UserBase(BaseModel):
     username: str
@@ -11,10 +11,19 @@ class UserCreate(UserBase):
     password: str
 
 
+class UserUpdate(UserBase):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    is_active: Optional[bool] = None
+
+
+class UserInDB(UserBase):
+    hashed_password: str
+
+
 class UserLogin(BaseModel):
     username: str
     password: str
-
 
 class UserResponse(UserBase):
     id: int
@@ -23,4 +32,4 @@ class UserResponse(UserBase):
     is_active: bool
     
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -8,9 +8,11 @@ from core.config import settings
 
 Base = declarative_base()
 
+database_url = settings.get_database_url()
+
 # Création du moteur SQLAlchemy async
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    database_url,
     echo=settings.DEBUG,
     future=True,
 )
@@ -27,12 +29,7 @@ async_session_maker = async_sessionmaker(
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    Dépendance FastAPI pour obtenir une session de base de données.
-    
-    Usage:
-        @app.get("/users")
-        async def list_users(db: AsyncSession = Depends(get_db)):
-            # utiliser db...
+    FastAPI dependency to get a database session.
     """
     async with async_session_maker() as session:
         try:
@@ -46,11 +43,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Initialise la base de données (crée les tables)"""
+    """Initialize the database (create tables)"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 
 async def close_db() -> None:
-    """Ferme les connexions à la base de données"""
+    """Close the database connections"""
     await engine.dispose()
