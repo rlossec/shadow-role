@@ -1,0 +1,35 @@
+flowchart LR
+
+subgraph Client["🧑‍💻 Utilisateurs (Joueurs)"]
+A1[💻 Frontend React]
+end
+
+subgraph Frontend["🎨 Frontend Web"]
+A1 -->|REST / WebSocket| B1[🌐 API Gateway]
+end
+
+subgraph Backend["⚙️ Backend FastAPI"]
+B1 -->|REST| S1[🧠 Services métier]
+B1 -->|WebSocket| WS[🔌 WebSocket Handler /ws/lobby/<id>]
+S1 -->|ORM| DB[(🗃️ PostgreSQL / SQLite)]
+end
+
+Admin[🧑‍💼 Admin Panel] -->|REST| B1
+
+DB -->|Persistance| B1
+
+classDef user fill:#FDF6E3,stroke:#AAA;
+classDef api fill:#DFF2FF,stroke:#00A;
+classDef logic fill:#E3F7DF,stroke:#080;
+classDef db fill:#FFF5E6,stroke:#A80;
+classDef bot fill:#EAEAFF,stroke:#80F;
+classDef admin fill:#FFE6E6,stroke:#A00;
+
+class A1 user;
+class A2 user;
+class B1 api;
+class S1 logic;
+class DB db;
+class WS api;
+class Discord bot;
+class Admin admin;

@@ -9,14 +9,18 @@ class Settings(BaseSettings):
     API_HOST: str = "localhost"
     API_PORT: int = 8000
 
+    SECRET_KEY: str
     DEBUG: bool = False
-
-    DATABASE_URL: str
-
 
     ALLOWED_ORIGINS: str = ""
     ALLOWED_METHODS: str = "*"
     ALLOWED_HEADERS: str = "*"
+
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    DATABASE_URL: str
+
 
     @field_validator("ALLOWED_ORIGINS")
     def parse_allowed_origins(cls, v: str) -> List[str]:
