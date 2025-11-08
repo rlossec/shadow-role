@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 from pydantic import field_validator
 
 
@@ -18,6 +18,10 @@ class Settings(BaseSettings):
 
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 
+
+    RESET_TOKEN_EXPIRATION_HOURS: int = 1
+    VERIFY_TOKEN_EXPIRATION_HOURS: int = 24
 
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
