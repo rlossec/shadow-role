@@ -1,0 +1,8 @@
+services:
+  smtp:
+    image: mailhog/mailhog
+    container_name: "smtp"
+    hostname: smtp
+    ports:
+      - "1025:1025"
+      - "8025:8025"
