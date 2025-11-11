@@ -1,11 +1,11 @@
-## Backend — Documentation de référence
+# Backend — Documentation de référence
 
 Ce README centralise les liens vers la documentation du backend. Utilisez-le comme point d’entrée pour naviguer vers les sections détaillées.
 
-### Table des matières
+## Table des matières
 
-- [Architecture](../docs/backend/architecture.md)
-- [Base de données](../docs/backend/database.md)
-- [Authentification](../docs/backend/authentication.md)
-- [Endpoints API](../docs/backend/endpoints.md)
-- [WebSocket](../docs/backend/websocket.md)
+- [Référence API REST](./api_reference.md)
+- [Schémas de base de données](./db_schemas.md)
+- [Documentation WebSocket](./websocket_doc.md)
+- [Tests backend](./tests.md)
+- [Notes techniques & architecture](./technical_notes.md)

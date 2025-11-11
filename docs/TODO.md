@@ -1,18 +1,22 @@
 # 🧱 PHASE 1 — Documentation (priorité haute)
 
-📌 **Objectif** : Finaliser la base documentaire du projet pour pouvoir démarrer le code proprement.
+### Légende
 
-| Statut | Tâche                                                 | Priorité | Détails                                      |
-| ------ | ----------------------------------------------------- | -------- | -------------------------------------------- |
-| 🟩     | Créer `README.md` principal                           | Haute    | Présenter le projet, la stack                |
-| ⬜     | Organiser la doc dans `docs/README.md`                | Haute    | Présenter les liens docs                     |
-| ⬜     | Rédiger `docs/overview/architecture.md`               | Haute    | Vue d’ensemble (diagrammes + flux REST/WS)   |
-| ⬜     | Rédiger `docs/overview/flux-communication.md`         | Haute    | Séquence complète d’une partie               |
-| ⬜     | Créer `docs/backend/websocket.md`                     | Haute    | Décrire `ConnectionManager`, `GameService`   |
-| ⬜     | Créer `docs/frontend/websocket-client.md`             | Moyenne  | Expliquer `useWebSocket`, handlers et events |
-| ⬜     | Créer `docs/data/missions.md` et `docs/data/roles.md` | Moyenne  | Lister types de missions/rôles de base       |
-| ⬜     | Créer `docs/overview/game-state.mermaid`              | Moyenne  | Diagramme FSM : waiting → running → ended    |
-| ⬜     | Créer `docs/backend/services.md`                      | Moyenne  | Liste et rôle des services backend           |
+- 🟩 = terminé
+- 🟨 = en cours
+- ⬜ = à faire
+- 🟥 = bloquant / erreur
+- `Haute`, `Moyenne`, `Basse` = priorité
+
+📌 **Objectif** : Maintenir une base documentaire complète et à jour.
+
+| Statut | Tâche                                                                          | Priorité | Détails                                       |
+| ------ | ------------------------------------------------------------------------------ | -------- | --------------------------------------------- |
+| 🟩     | Restructurer `docs/README.md`                                                  | Haute    | Table des matières alignée sur l’arborescence |
+| 🟩     | Compléter `overview/dev_guide.md`, `user_guide.md`, `changelog.md`             | Haute    | Guides overview remplis                       |
+| 🟨     | Décrire le client WebSocket côté frontend (`frontend/websocket-client.md`)     | Moyenne  | Présenter `useWebSocket`, événements écoutés  |
+| ⬜     | Documenter les données de base (`docs/data/missions.md`, `docs/data/roles.md`) | Moyenne  | Référentiel missions/rôles                    |
+| ⬜     | Ajouter un diagramme FSM (`docs/overview/game-state.mermaid`)                  | Basse    | États `waiting → running → ended`             |
 
 ---
 
@@ -25,7 +29,7 @@
 | ⬜     | Configurer FastAPI (CORS, routers, DB)                         | Haute    | Fichier `main.py` et `app.include_router()` |
 | ⬜     | Authentification JWT (login/register)                          | Haute    | `/api/auth/*`                               |
 | ⬜     | Modèles SQLAlchemy (User, Lobby, Game, Mission, Role, Player)  | Haute    | `backend/models/*.py`                       |
-| ⬜     | Schémas Pydantic (validation)                                  | Haute    | `backend/schemas/*.py`                      |
+| ⬜     | Schémas Pydantic (validation)                                  | Haute    | `backend/db/schemas/*.py`                   |
 | ⬜     | Repositories CRUD (DAO)                                        | Moyenne  | `backend/repositories/*.py`                 |
 | ⬜     | Endpoints REST : `/api/lobbies`, `/api/missions`, `/api/games` | Moyenne  | CRUD + relations                            |
 | ⬜     | Endpoint pour suggestions                                      | Moyenne  | `/api/missions/suggest`                     |
@@ -81,7 +85,7 @@
 
 | Phase            | Objectif                               | Avancement |
 | ---------------- | -------------------------------------- | ---------- |
-| 📘 Documentation | Structurer & visualiser l’architecture | 🟩 70%     |
+| 📘 Documentation | Structurer & visualiser l’architecture | 🟩 80%     |
 | ⚙️ Backend REST  | Auth + CRUD + relations                | 🟨 0%      |
 | 🔌 WebSocket     | Gestion temps réel + logique de jeu    | 🟨 0%      |
 | 💻 Frontend      | UI + WebSocket + Routing               | ⬜ 0%      |
@@ -102,10 +106,10 @@
 
 # 📅 Étapes prioritaires suivantes
 
-1. 🧭 Finaliser la documentation `backend/websocket.md` et `frontend/websocket-client.md`
-2. ⚙️ Implémenter `ConnectionManager` + `GameService` minimal
-3. 💻 Connecter `useWebSocket` dans React (LobbyPage + GamePage)
-4. 🧪 Tester le flux complet "join → start → assign → score → end"
+1. 🧭 Documenter les comportements WebSocket côté frontend (`frontend/websocket-client.md`).
+2. ⚙️ Implémenter `ConnectionManager` + `GameService` minimal.
+3. 💻 Connecter `useWebSocket` dans React (LobbyPage + GamePage).
+4. 🧪 Tester le flux complet "join → start → assign → score → end".
 
 ---
 
@@ -113,11 +117,3 @@
 > Tu peux cocher les éléments avec ✅ ou 🟩 au fur et à mesure.
 
 ---
-
-### Légende
-
-- 🟩 = terminé
-- 🟨 = en cours
-- ⬜ = à faire
-- 🟥 = bloquant / erreur
-- `Haute`, `Moyenne`, `Basse` = priorité

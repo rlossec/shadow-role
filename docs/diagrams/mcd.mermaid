@@ -1,0 +1,92 @@
+erDiagram
+    USER {
+        uuid id PK
+        string username
+        string email UK
+        string hashed_password
+        datetime created_at
+        datetime updated_at
+        boolean is_active
+        boolean is_superuser
+    }
+
+    LOBBY {
+        uuid id PK
+        string name
+        string code UK
+        uuid game_id FK
+        uuid host_id FK
+        enum status "waiting" | "running" | "paused" | "ended"
+        enum phase "none" | "suggestion" | "round" | "validation"
+        int max_players
+        int current_players
+        datetime created_at
+        datetime expires_at
+    }
+
+    ROUND {
+        uuid id PK
+        uuid lobby_id FK
+    }
+
+    GAME {
+        uuid id PK
+        string name
+        string description
+        text rules
+        enum type "role_based|mission_based|hybrid"
+        json config
+        datetime created_at
+        datetime updated_at
+    }
+
+    MISSION {
+        uuid id PK
+        uuid game_id FK
+        uuid role_id FK "nullable"
+        string title
+        text description
+        int difficulty
+    }
+
+    ROLE {
+        uuid id PK
+        uuid game_id FK
+        string name
+        text description
+        string image_url
+        int min_players
+    }
+
+    PLAYER {
+        uuid id PK
+        uuid lobby_id FK
+        uuid user_id FK
+        uuid role_id FK "nullable"
+        int score
+        enum status "waiting|playing|completed|left"
+        datetime joined_at
+        datetime left_at
+    }
+
+    MISSION_PLAYER {
+        uuid id PK
+        uuid player_id FK
+        uuid mission_id FK
+        json state "état évolutif de la mission"
+        enum status "active|completed|failed|cancelled"
+        datetime assigned_at
+        datetime completed_at "nullable"
+    }
+
+    %% Relations
+    USER ||--o{ LOBBY : "hosts"
+    USER ||--o{ PLAYER : "participates"
+    LOBBY ||--o{ PLAYER : "contains"
+    LOBBY }o--|| GAME : "uses"
+    GAME ||--o{ MISSION : "has"
+    GAME ||--o{ ROLE : "defines"
+    ROLE }o--o| MISSION : "optionally_linked"
+    PLAYER }o--|| ROLE : "assigned"
+    PLAYER ||--o{ MISSION_PLAYER : "has"
+    MISSION }o--o{ MISSION_PLAYER : "assigned_to"
