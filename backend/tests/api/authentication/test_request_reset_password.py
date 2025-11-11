@@ -16,14 +16,15 @@ async def create_user(auth_service, username: str, email: str, password: str):
 
 
 @pytest.mark.asyncio
-async def test_forgot_password_generates_token(client, auth_service):
+async def test_request_reset_password_generates_token(client, auth_service):
     await create_user(auth_service, "forgot_user", "forgot@example.com", "forgotpass123")
 
     response = await client.post(
-        "/auth/forgot-password",
+        "/auth/request-reset-password",
         json={"email": "forgot@example.com"},
     )
 
     assert response.status_code == 202
     data = response.json()
     assert data["reset_token"]
+    assert data["user_id"]

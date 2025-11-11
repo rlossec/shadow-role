@@ -1,4 +1,10 @@
-"""Tests for the /auth/jwt/login endpoint."""
+"""
+Tests for the /auth/jwt/login endpoint.
+
+shortcut : uv run pytest tests/api/authentication/test_login.py -v
+
+"""
+from api.authentication import LOGIN_BAD_CREDENTIALS
 
 import pytest
 from sqlalchemy import select
@@ -8,7 +14,7 @@ from models import User
 
 
 async def create_user(auth_service, username: str, email: str, password: str) -> User:
-    return await auth_service.register_user(
+    user = await auth_service.register_user(
         UserCreate(
             username=username,
             email=email,
@@ -16,6 +22,9 @@ async def create_user(auth_service, username: str, email: str, password: str) ->
             confirm_password=password,
         )
     )
+    user.is_active = True
+    await auth_service.user_repository.update_user(user.id, user)
+    return user
 
 
 @pytest.mark.asyncio
@@ -27,7 +36,6 @@ async def test_login_success_with_username(client, auth_service):
         data={"username": "logintest", "password": "password123"},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-
     assert response.status_code == 200
     data = response.json()
     assert data["token_type"] == "bearer"
@@ -111,7 +119,7 @@ async def test_login_inactive_user(client, auth_service, db_session):
 
     assert response.status_code in (400, 401)
     error_detail = response.json()["detail"]
-    assert "inactive" in error_detail.lower() or "LOGIN_BAD_CREDENTIALS" in error_detail
+    assert error_detail == LOGIN_BAD_CREDENTIALS
 
 
 @pytest.mark.asyncio

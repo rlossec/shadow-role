@@ -15,7 +15,12 @@ from db.database import Base, engine, get_async_session
 from main import app
 from models import *  # Import all models so Base.metadata knows about them
 from repositories.user_repository import UserRepository
+from repositories.token_repository import TokenRepository
 from services.auth.service import build_authentication_service
+from services.auth.token_manager import AccountActivationTokenManager
+from services.auth.link_builder import NotificationLinkBuilder
+from services.notifications.interface import NotificationService
+from services.notifications.dependencies import get_notification_service as get_notification_service_dependency
 
 
 default_db_url = "sqlite+aiosqlite:///:memory:"
@@ -75,7 +80,7 @@ async def db_session():
 
 
 @pytest.fixture(scope="function")
-async def client(db_session):
+async def client(db_session, notification_service):
     """Async HTTP client bound to the test DB."""
 
     async def override_get_async_session():
@@ -85,6 +90,7 @@ async def client(db_session):
             pass
 
     app.dependency_overrides[get_async_session] = override_get_async_session
+    app.dependency_overrides[get_notification_service_dependency] = lambda: notification_service
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as test_client:
@@ -93,11 +99,42 @@ async def client(db_session):
     app.dependency_overrides.clear()
 
 
+class DummyNotificationService(NotificationService):
+    def __init__(self) -> None:
+        self.calls = []
+
+    async def send(self, to: str, template_name: str, context: dict[str, object]) -> None:
+        self.calls.append({"to": to, "template": template_name, "context": context})
+
+
 @pytest.fixture(scope="function")
-def auth_service(db_session):
+def notification_service():
+    return DummyNotificationService()
+
+
+@pytest.fixture(scope="function")
+def link_builder():
+    return NotificationLinkBuilder(base_url="http://frontend.test")
+
+
+@pytest.fixture(scope="function")
+def auth_service(db_session, notification_service, link_builder):
     """Authentication service wired to the test session."""
     user_repo = UserRepository(db_session)
-    return build_authentication_service(user_repo)
+    token_repo = TokenRepository(db_session)
+    return build_authentication_service(
+        user_repo,
+        token_repo,
+        notification_service=notification_service,
+        link_builder=link_builder,
+    )
+
+
+@pytest.fixture(scope="function")
+def account_activation_manager(db_session):
+    """Account activation token manager wired to the test session."""
+    user_repo = UserRepository(db_session)
+    return AccountActivationTokenManager(user_repo)
 
 
 @pytest.fixture(scope="session", autouse=True)

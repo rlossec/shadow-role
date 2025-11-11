@@ -27,7 +27,8 @@ async def test_register_success(client):
     data = response.json()
     assert data["username"] == "testuser"
     assert data["email"] == "test@example.com"
-    assert data["is_active"] is True
+    assert data["is_active"] is False
+
 
 
 @pytest.mark.asyncio
@@ -220,6 +221,7 @@ async def test_register_passwords_match(client):
     data = response.json()
     assert data["username"] == "testuser"
     assert data["email"] == "test@example.com"
+    assert data["is_active"] is False
 
 
 @pytest.mark.asyncio

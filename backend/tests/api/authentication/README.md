@@ -38,25 +38,33 @@ Tests pour l'endpoint `/auth/jwt/logout` :
 - ✅ `test_logout_success` - Logout avec token valide
 - ✅ `test_logout_without_token_returns_401` - Logout protégé sans token
 
-### test_forgot_password.py
+### test_request_reset_password.py
 
-Tests pour l'endpoint `/auth/forgot-password` :
+Tests pour l'endpoint `/auth/request-reset-password` :
 
-- ✅ `test_forgot_password_generates_token` - Génération d'un token de réinitialisation
+- ✅ `test_request_reset_password_generates_token` - Génération d'un couple `(user_id, token)` de réinitialisation
 
 ### test_reset_password.py
 
 Tests pour l'endpoint `/auth/reset-password` :
 
-- ✅ `test_reset_password_success` - Réinitialisation avec token valide
-- ✅ `test_reset_password_invalid_token` - Rejet d'un token invalide
+- ✅ `test_reset_password_success` - Réinitialisation avec `(user_id, token)` valide
+- ✅ `test_reset_password_invalid_token` - Rejet d'un couple invalide
 
-### test_verify_token.py
+### test_resend_activation.py
 
-Tests pour les endpoints `/auth/request-verify-token` et `/auth/verify` :
+Tests pour l'endpoint `/auth/resend_activation` :
 
-- ✅ `test_request_verify_token_and_verify_success` - Flux de vérification complet (utilisateur créé via `auth_service`)
-- ✅ `test_verify_with_bad_token_returns_400` - Rejet d'un token invalide
+- ✅ `test_resend_activation_success` - Génère `(user_id, token)` pour un compte inactif
+- ✅ `test_resend_activation_unknown_email_returns_no_token` - Pas de fuite d'information si l’email est inconnu
+- ✅ `test_resend_activation_user_already_active_returns_no_token` - Aucun token renvoyé si le compte est déjà actif
+
+### test_activate_account.py
+
+Tests pour l'endpoint `/auth/activate-account` :
+
+- ✅ `test_activate_account_user_success` - Activation réussie avec `(user_id, token)` valide
+- ✅ `test_activate_account_with_bad_token_returns_400` - Rejet d'un couple invalide
 
 ### test_refresh.py
 
@@ -98,7 +106,7 @@ uv run pytest tests/api/authentication/ --cov=services.authentication --cov-repo
 
 1. **Base de données de test** : Les tests utilisent SQLite en mémoire, donc chaque test a une base de données propre.
 2. **Isolation** : Chaque test est isolé et utilise une session de base de données séparée.
-3. **Fixtures** : `client`, `db_session` et `auth_service` sont définies dans `tests/conftest.py`. `auth_service` encapsule `UserRepository` et `JWTRepository` avec la session de test.
+3. **Fixtures** : `client`, `db_session`, `auth_service` et `account_activation_manager` sont définies dans `tests/conftest.py`. `auth_service` encapsule `UserRepository` et `JWTRepository` avec la session de test.
 4. **Stratégie** : Les tests préparent généralement leurs données via `auth_service` puis consomment l'endpoint HTTP pour l’action à valider.
 
 ## Structure des tests
