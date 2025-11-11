@@ -18,7 +18,6 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, nullable=False, default=True)
     is_superuser = Column(Boolean, nullable=False, default=False)
-    is_verified = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
         DateTime(timezone=True),

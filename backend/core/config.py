@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
@@ -10,9 +10,10 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
 
     SECRET_KEY: str
+    REFRESH_SECRET_KEY: str | None = None
     DEBUG: bool = False
 
-    ALLOWED_ORIGINS: str = ""
+    ALLOWED_ORIGINS: str = "*"
     ALLOWED_METHODS: str = "*"
     ALLOWED_HEADERS: str = "*"
 
@@ -21,7 +22,18 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 
 
     RESET_TOKEN_EXPIRATION_HOURS: int = 1
-    VERIFY_TOKEN_EXPIRATION_HOURS: int = 24
+    ACCOUNT_ACTIVATION_TOKEN_EXPIRATION_HOURS: int = 24
+
+    FRONTEND_BASE_URL: str = "http://localhost:5173"
+
+    SMTP_HOST: str = "localhost"
+    SMTP_PORT: int = 1025
+    SMTP_USERNAME: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: str = "no-reply@localhost"
+    SMTP_USE_TLS: bool = False
+    SMTP_USE_STARTTLS: bool = False
+    SMTP_TIMEOUT: float = 10.0
 
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str

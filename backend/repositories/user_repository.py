@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import PasswordResetToken, User, VerificationToken
+from models import PasswordResetToken, User, AccountActivationToken
 from db.schemas import UserCreate, UserUpdate
 from utils.password_hashing import hash_password
 
@@ -58,9 +58,8 @@ class UserRepository:
             username=user_data.username,
             email=user_data.email,
             hashed_password=hashed_password,
-            is_active=True,
+            is_active=False,
             is_superuser=False,
-            is_verified=False,
         )
         self.db.add(user)
         await self.db.commit()
@@ -111,14 +110,6 @@ class UserRepository:
         await self.db.commit()
         await self.db.refresh(user)
 
-    async def set_user_verified(self, user_id: UUID) -> None:
-        """Set a user's verified status"""
-        user = await self.get_user(user_id)
-        if not user:
-            raise ValueError("User not found")
-        user.is_verified = True
-        await self.db.commit()
-        await self.db.refresh(user)
 
     async def set_user_active(self, user_id: UUID, is_active: bool) -> None:
         """Set a user's active status"""
@@ -157,30 +148,30 @@ class UserRepository:
         )
         await self.db.commit()
 
-    # --- Méthodes VerificationToken ---
+    # --- Méthodes AccountActivationToken ---
 
-    async def create_verification_token(self, user_id: UUID, token: str, expires_at: datetime) -> VerificationToken:
+    async def create_account_activation_token(self, user_id: UUID, token: str, expires_at: datetime) -> AccountActivationToken:
         await self.db.execute(
-            delete(VerificationToken).where(VerificationToken.user_id == user_id, VerificationToken.used.is_(False))
+            delete(AccountActivationToken).where(AccountActivationToken.user_id == user_id, AccountActivationToken.used.is_(False))
         )
 
-        verification_token = VerificationToken(
+        account_activation_token = AccountActivationToken(
             user_id=user_id,
             token=token,
             expires_at=expires_at,
         )
-        self.db.add(verification_token)
+        self.db.add(account_activation_token)
         await self.db.commit()
-        return verification_token
+        return account_activation_token
 
-    async def get_verification_token(self, token: str) -> Optional[VerificationToken]:
-        result = await self.db.execute(select(VerificationToken).where(VerificationToken.token == token))
+    async def get_account_activation_token(self, token: str) -> Optional[AccountActivationToken]:
+        result = await self.db.execute(select(AccountActivationToken).where(AccountActivationToken.token == token))
         return result.scalar_one_or_none()
 
-    async def mark_verification_token_used(self, token_id: UUID) -> None:
+    async def mark_account_activation_token_used(self, token_id: UUID) -> None:
         await self.db.execute(
-            update(VerificationToken)
-            .where(VerificationToken.id == token_id)
+            update(AccountActivationToken)
+            .where(AccountActivationToken.id == token_id)
             .values(used=True, expires_at=datetime.now(timezone.utc))
         )
         await self.db.commit()

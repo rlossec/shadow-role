@@ -63,14 +63,17 @@ class JWTRepository:
                 detail="Token invalide ou expiré",
             ) from exc
 
-    def extract_user_id_from_refresh_token(self, token: str) -> uuid.UUID:
+    def decode_refresh_token(self, token: str) -> dict:
         payload = self.decode_token(token, self.refresh_secret_key)
         if payload.get("type") != "refresh":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token invalide (pas un refresh token)",
             )
+        return payload
 
+    def extract_user_id_from_refresh_token(self, token: str) -> uuid.UUID:
+        payload = self.decode_refresh_token(token)
         try:
             return uuid.UUID(payload["sub"])
         except (ValueError, TypeError, KeyError) as exc:

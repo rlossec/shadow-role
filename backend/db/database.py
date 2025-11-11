@@ -13,7 +13,7 @@ database_url = settings.get_database_url()
 # Création du moteur SQLAlchemy async
 engine = create_async_engine(
     database_url,
-    echo=settings.DEBUG,
+    #echo=settings.DEBUG,
     future=True,
 )
 

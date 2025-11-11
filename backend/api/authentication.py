@@ -3,27 +3,38 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from db.schemas import (
     TokenPair,
-    AccessToken,
     UserCreate,
     UserResponse,
-    ForgotPasswordRequest,
-    ResetPasswordRequest,
-    RequestVerifyToken,
-    VerifyRequest,
+    PasswordResetEmailRequest,
+    PasswordResetConfirmRequest,
+    AccountActivationRequest,
+    AccountActivationConfirmRequest,
     RefreshRequest,
-    ForgotPasswordResponse,
-    RequestVerifyTokenResponse,
+    PasswordResetResponse,
+    AccountActivationResponse,
 )
 from services.auth import (
     AuthenticationService,
     PasswordResetManager,
-    VerificationTokenManager,
-    get_current_active_user,
+    AccountActivationTokenManager,
     get_authentication_service,
     get_password_reset_manager,
-    get_verification_manager,
+    get_account_activation_manager,
+    get_current_active_user,
 )
 
+# Error messages
+LOGIN_BAD_CREDENTIALS = "Credentials are incorrect"
+INVALID_REFRESH_TOKEN = "Invalid refresh token"
+RESET_PASSWORD_BAD_TOKEN = "Reset password token is invalid"
+ACCOUNT_ACTIVATION_BAD_TOKEN = "Account activation token is invalid"
+REGISTER_DUPLICATE_USERNAME = "Username already exists"
+REGISTER_DUPLICATE_EMAIL = "Email already exists"
+REGISTER_INVALID_EMAIL = "Invalid email"
+REGISTER_MISSING_FIELDS = "Missing fields"
+REGISTER_EMPTY_FIELDS = "Empty fields"
+REGISTER_WEAK_PASSWORD = "Weak password"
+REGISTER_SPECIAL_CHARACTERS_IN_USERNAME = "Special characters are not allowed in username"
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,8 +43,11 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register_user(
     payload: UserCreate,
     auth_service: AuthenticationService = Depends(get_authentication_service),
+    account_activation_manager: AccountActivationTokenManager = Depends(get_account_activation_manager),
 ):
     user = await auth_service.register_user(payload)
+    activation_token = await account_activation_manager.create_token(user)
+    await auth_service.notify_account_activation(user, activation_token)
     return UserResponse.model_validate(user)
 
 
@@ -44,56 +58,68 @@ async def login(
 ):
     user = await auth_service.authenticate_user(form_data.username, form_data.password)
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="LOGIN_BAD_CREDENTIALS")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=LOGIN_BAD_CREDENTIALS)
 
     access_token, refresh_token = auth_service.create_token_pair(user.id)
     return TokenPair(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
-@router.post("/jwt/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(_: UserResponse = Depends(get_current_active_user)):
-    return None
-
-
-@router.post("/refresh", response_model=AccessToken)
+@router.post("/refresh", response_model=TokenPair)
 async def refresh_token(
     payload: RefreshRequest,
     auth_service: AuthenticationService = Depends(get_authentication_service),
 ):
-    user_id = auth_service.extract_user_id_from_refresh_token(payload.refresh_token)
-    user = await auth_service.get_user_by_id(user_id)
-
-    if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="INVALID_REFRESH_TOKEN")
-
-    access_token = auth_service.create_access_token(user.id)
-
-    return AccessToken(access_token=access_token, token_type="bearer")
+    access_token, refresh_token = await auth_service.rotate_refresh_token(payload.refresh_token)
+    return TokenPair(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
-@router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED, response_model=ForgotPasswordResponse)
-async def forgot_password(
-    payload: ForgotPasswordRequest,
+@router.post("/jwt/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    payload: RefreshRequest,
+    auth_service: AuthenticationService = Depends(get_authentication_service),
+):
+    await auth_service.revoke_refresh_token(payload.refresh_token, reason="logout")
+    return None
+
+
+@router.get("/me", response_model=UserResponse)
+async def read_current_user(
+    current_user: UserResponse = Depends(get_current_active_user),
+) -> UserResponse:
+    return current_user
+
+
+@router.post(
+    "/request-reset-password",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=PasswordResetResponse,
+)
+async def request_reset_password(
+    payload: PasswordResetEmailRequest,
     auth_service: AuthenticationService = Depends(get_authentication_service),
     reset_manager: PasswordResetManager = Depends(get_password_reset_manager),
 ):
     user = await auth_service.get_user_by_email(payload.email)
     if not user:
-        return ForgotPasswordResponse(reset_token=None)
+        return PasswordResetResponse(reset_token=None, user_id=None)
 
     token = await reset_manager.create_token(user)
-    return ForgotPasswordResponse(reset_token=token)
+    await auth_service.notify_password_reset(user, token)
+    return PasswordResetResponse(reset_token=token, user_id=user.id)
 
 
 @router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
 async def reset_password(
-    payload: ResetPasswordRequest,
+    payload: PasswordResetConfirmRequest,
     auth_service: AuthenticationService = Depends(get_authentication_service),
     reset_manager: PasswordResetManager = Depends(get_password_reset_manager),
 ):
     reset_token = await reset_manager.verify_token(payload.token)
     if not reset_token:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="RESET_PASSWORD_BAD_TOKEN")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=RESET_PASSWORD_BAD_TOKEN)
+
+    if str(reset_token.user_id) != str(payload.user_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=RESET_PASSWORD_BAD_TOKEN)
 
     await auth_service.set_user_password(reset_token.user_id, payload.password)
     await reset_manager.mark_token_used(reset_token)
@@ -101,42 +127,44 @@ async def reset_password(
 
 
 @router.post(
-    "/request-verify-token",
+    "/resend_activation",
     status_code=status.HTTP_202_ACCEPTED,
-    response_model=RequestVerifyTokenResponse,
+    response_model=AccountActivationResponse,
 )
-async def request_verify_token(
-    payload: RequestVerifyToken,
+async def resend_activation(
+    payload: AccountActivationRequest,
     auth_service: AuthenticationService = Depends(get_authentication_service),
-    verification_manager: VerificationTokenManager = Depends(get_verification_manager),
+    account_activation_manager: AccountActivationTokenManager = Depends(get_account_activation_manager),
 ):
     user = await auth_service.get_user_by_email(payload.email)
-    if not user or not user.is_active or user.is_verified:
-        return RequestVerifyTokenResponse(verification_token=None)
+    if not user or user.is_active:
+        return AccountActivationResponse(activation_token=None, user_id=None)
 
-    token = await verification_manager.create_token(user)
-    return RequestVerifyTokenResponse(verification_token=token)
+    token = await account_activation_manager.create_token(user)
+    await auth_service.notify_account_activation(user, token)
+    return AccountActivationResponse(activation_token=token, user_id=user.id)
 
 
-@router.post("/verify", response_model=UserResponse)
-async def verify(
-    payload: VerifyRequest,
+@router.post("/activate-account", response_model=UserResponse)
+async def activate_account(
+    payload: AccountActivationConfirmRequest,
     auth_service: AuthenticationService = Depends(get_authentication_service),
-    verification_manager: VerificationTokenManager = Depends(get_verification_manager),
+    account_activation_manager: AccountActivationTokenManager = Depends(get_account_activation_manager),
 ):
-    verification_token = await verification_manager.verify_token(payload.token)
-    if not verification_token:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="VERIFY_USER_BAD_TOKEN")
+    account_activation_token = await account_activation_manager.verify_token(payload.token)
+    if not account_activation_token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ACCOUNT_ACTIVATION_BAD_TOKEN)
 
-    await auth_service.set_user_verified(verification_token.user_id)
-    await verification_manager.mark_token_used(verification_token)
+    if str(account_activation_token.user_id) != str(payload.user_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ACCOUNT_ACTIVATION_BAD_TOKEN)
 
-    user = await auth_service.get_user_by_id(verification_token.user_id)
+    await auth_service.set_user_active(account_activation_token.user_id, True)
+    await account_activation_manager.mark_token_used(account_activation_token)
+
+    user = await auth_service.get_user_by_id(account_activation_token.user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="VERIFY_USER_BAD_TOKEN")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ACCOUNT_ACTIVATION_BAD_TOKEN)
+
+    await auth_service.notify_activation_confirmation(user)
 
     return UserResponse.model_validate(user)
-
-
-
-
