@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -15,20 +17,22 @@ class TokenData(BaseModel):
 
 
 
-class ForgotPasswordRequest(BaseModel):
+class PasswordResetEmailRequest(BaseModel):
     email: EmailStr
 
 
-class ResetPasswordRequest(BaseModel):
+class PasswordResetConfirmRequest(BaseModel):
+    user_id: UUID
     token: str
     password: str
 
 
-class RequestVerifyToken(BaseModel):
+class AccountActivationRequest(BaseModel):
     email: EmailStr
 
 
-class VerifyRequest(BaseModel):
+class AccountActivationConfirmRequest(BaseModel):
+    user_id: UUID
     token: str
 
 
@@ -36,9 +40,11 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
-class ForgotPasswordResponse(BaseModel):
+class PasswordResetResponse(BaseModel):
+    user_id: UUID | None = None
     reset_token: str | None = None
 
 
-class RequestVerifyTokenResponse(BaseModel):
-    verification_token: str | None = None
+class AccountActivationResponse(BaseModel):
+    user_id: UUID | None = None
+    activation_token: str | None = None

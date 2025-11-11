@@ -10,7 +10,6 @@ class UserRead(BaseModel):
     username: str
     email: EmailStr
     is_active: bool
-    is_verified: bool
     created_at: datetime
     updated_at: datetime
 
@@ -57,7 +56,6 @@ class UserInDB(BaseModel):
     hashed_password: str
     is_active: bool
     is_superuser: bool
-    is_verified: bool
     created_at: datetime
     updated_at: datetime
 
@@ -74,7 +72,6 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr
     is_active: bool
-    is_verified: bool
     created_at: datetime
     updated_at: datetime
 

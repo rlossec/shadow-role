@@ -1,5 +1,16 @@
 from .user import UserCreate, UserUpdate, UserResponse, UserInDB, UserLogin, UserRead
-from .token import AccessToken, TokenPair, TokenData, ForgotPasswordRequest, ResetPasswordRequest, RequestVerifyToken, VerifyRequest, RefreshRequest, ForgotPasswordResponse, RequestVerifyTokenResponse
+from .token import (
+    AccessToken,
+    TokenPair,
+    TokenData,
+    PasswordResetEmailRequest,
+    PasswordResetConfirmRequest,
+    AccountActivationRequest,
+    AccountActivationConfirmRequest,
+    RefreshRequest,
+    PasswordResetResponse,
+    AccountActivationResponse,
+)
 from .game import GameCreate, GameResponse, GameUpdate
 from .role import RoleCreate, RoleResponse, RoleUpdate
 from .mission import MissionCreate, MissionResponse, MissionUpdate
@@ -42,11 +53,11 @@ __all__ = [
     "PlayerUpdate",
     "PlayerWithUser",
     "PlayerWithRole",
-    "ForgotPasswordRequest",
-    "ResetPasswordRequest",
-    "RequestVerifyToken",
-    "VerifyRequest",
+    "PasswordResetEmailRequest",
+    "PasswordResetConfirmRequest",
+    "AccountActivationRequest",
+    "AccountActivationConfirmRequest",
     "RefreshRequest",
-    "ForgotPasswordResponse",
-    "RequestVerifyTokenResponse",
+    "PasswordResetResponse",
+    "AccountActivationResponse",
 ]

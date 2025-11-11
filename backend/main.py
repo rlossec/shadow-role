@@ -1,11 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import socketio
-
 from contextlib import asynccontextmanager
 
-from websocket.server import sio_server
+from websocket.socket_server import sio_app
 from core.config import settings
 
 from db.database import create_db_and_tables, close_db
@@ -22,7 +20,7 @@ async def lifespan(app: FastAPI):
 
 
 # Créer l'application FastAPI
-fastapi_app = FastAPI(
+app = FastAPI(
     title="Shadow Role API",
     description="API for the Shadow Role web app",
     version="0.1.0",
@@ -36,7 +34,7 @@ allowed_origins = settings.ALLOWED_ORIGINS if settings.ALLOWED_ORIGINS else ["*"
 allowed_methods = settings.ALLOWED_METHODS.split(",") if isinstance(settings.ALLOWED_METHODS, str) else ["*"]
 allowed_headers = settings.ALLOWED_HEADERS.split(",") if isinstance(settings.ALLOWED_HEADERS, str) else ["*"]
 
-fastapi_app.add_middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
@@ -44,22 +42,19 @@ fastapi_app.add_middleware(
     allow_headers=allowed_headers,
 )
 
-fastapi_app.include_router(auth_router)
-fastapi_app.include_router(game_router)
-fastapi_app.include_router(lobby_router)
-fastapi_app.include_router(player_router)
+app.include_router(auth_router)
+app.include_router(game_router)
+app.include_router(lobby_router)
+app.include_router(player_router)
 
-# Enregistrer le serveur Socket.IO
-socket_app = socketio.ASGIApp(sio_server)
-fastapi_app.mount("/ws", socket_app)
-
-@fastapi_app.get("/")
+# Route racine FastAPI
+@app.get("/")
 def home():
     return {"message": "Shadow Role API", "version": "0.1.0"}
 
 
-# Alias pour uvicorn (main:app)
-app = fastapi_app
+# Combiner FastAPI et Socket.IO dans une seule application ASGI
+app.mount(settings.SOCKETIO_PATH, sio_app)
 
 if __name__ == "__main__":
     import uvicorn
@@ -69,4 +64,3 @@ if __name__ == "__main__":
         port=int(settings.API_PORT),
         reload=settings.DEBUG,
     )
-

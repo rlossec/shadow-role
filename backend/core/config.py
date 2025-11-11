@@ -26,6 +26,9 @@ class Settings(BaseSettings):
 
     FRONTEND_BASE_URL: str = "http://localhost:5173"
 
+    SOCKETIO_PATH: str = "/ws/socket.io"
+
+
     SMTP_HOST: str = "localhost"
     SMTP_PORT: int = 1025
     SMTP_USERNAME: Optional[str] = None
