@@ -32,14 +32,14 @@ class Lobby(Base):
     host_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     status = Column(SQLEnum(LobbyStatus), nullable=False, default=LobbyStatus.WAITING, index=True)
     phase = Column(SQLEnum(LobbyPhase), nullable=False, default=LobbyPhase.NONE, index=True)
+    min_players = Column(Integer, nullable=False, default=2)
     max_players = Column(Integer, nullable=False, default=10)
-    current_players = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    expires_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc) + timedelta(hours=2))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relations
-    game = relationship("Game", back_populates="lobbies")
-    host = relationship("User", foreign_keys=[host_id])
-    players = relationship("Player", back_populates="lobby", cascade="all, delete-orphan")
-    rounds = relationship("Round", back_populates="lobby", cascade="all, delete-orphan")
+    game = relationship("Game", back_populates="lobbies", lazy="joined")
+    host = relationship("User", foreign_keys=[host_id], lazy="joined")
+    players = relationship("Player", back_populates="lobby", cascade="all, delete-orphan", lazy="joined")
+    rounds = relationship("Round", back_populates="lobby", cascade="all, delete-orphan", lazy="joined")
 

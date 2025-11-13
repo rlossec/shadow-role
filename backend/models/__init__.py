@@ -1,6 +1,6 @@
 from .user import User
 from .auth_token import PasswordResetToken, AccountActivationToken, RevokedRefreshToken
-from .game import Game
+from .game import Game, GameType, Tag
 from .lobby import Lobby, LobbyStatus
 
 from .mission import Mission
@@ -15,6 +15,8 @@ __all__ = [
     "RevokedRefreshToken",
 
     "Game",
+    "GameType",
+    "Tag",
 
     "Lobby",
     "LobbyStatus",
@@ -25,7 +27,7 @@ __all__ = [
     "Mission",
     "MissionAssigned",
     "MissionAssignedStatus",
-    
+
     "Round",
     "RoundStatus",
 ]
