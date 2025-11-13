@@ -8,7 +8,7 @@ from core.config import settings
 
 from db.database import create_db_and_tables, close_db
 
-from api import auth_router, game_router, lobby_router, player_router
+from api import auth_router, game_router, lobby_router, player_router, mission_router
 
 
 
@@ -46,6 +46,7 @@ app.include_router(auth_router)
 app.include_router(game_router)
 app.include_router(lobby_router)
 app.include_router(player_router)
+app.include_router(mission_router)
 
 # Route racine FastAPI
 @app.get("/")
