@@ -3,7 +3,7 @@ import pytest
 
 from sqlalchemy import select
 
-from db.schemas import UserCreate
+from schemas import UserCreate
 from models.user import User
 
 from api.authentication import ACCOUNT_ACTIVATION_BAD_TOKEN

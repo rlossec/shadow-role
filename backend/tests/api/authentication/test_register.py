@@ -8,7 +8,7 @@ To run specific tests:
 
 import pytest
 
-from db.schemas import UserCreate
+from schemas import UserCreate
 
 
 @pytest.mark.asyncio

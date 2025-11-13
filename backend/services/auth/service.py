@@ -7,7 +7,7 @@ from typing import Optional, Any
 from fastapi import HTTPException, status
 
 from core.config import settings
-from db.schemas.user import UserCreate
+from schemas.user import UserCreate
 from models import User
 from repositories.jwt_repository import JWTRepository
 from repositories.token_repository import TokenRepository

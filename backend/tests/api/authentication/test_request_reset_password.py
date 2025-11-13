@@ -1,7 +1,7 @@
 
 import pytest
 
-from db.schemas import UserCreate
+from schemas import UserCreate
 
 
 async def create_user(auth_service, username: str, email: str, password: str):

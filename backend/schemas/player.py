@@ -9,7 +9,6 @@ from models.player import PlayerStatus
 
 class PlayerBase(BaseModel):
     lobby_id: UUID
-    role_id: Optional[UUID] = None
     score: int = 0
     status: PlayerStatus = PlayerStatus.WAITING
 
@@ -19,7 +18,6 @@ class PlayerCreate(BaseModel):
 
 
 class PlayerUpdate(BaseModel):
-    role_id: Optional[UUID] = None
     score: Optional[int] = None
     status: Optional[PlayerStatus] = None
 
@@ -32,18 +30,3 @@ class PlayerResponse(PlayerBase):
 
     class Config:
         from_attributes = True
-
-
-class PlayerWithUser(PlayerResponse):
-    user: "UserResponse"  # Forward reference
-
-    class Config:
-        from_attributes = True
-
-
-class PlayerWithRole(PlayerResponse):
-    role: Optional["RoleResponse"] = None  # Forward reference
-
-    class Config:
-        from_attributes = True
-

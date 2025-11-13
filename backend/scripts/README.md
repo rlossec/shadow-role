@@ -17,7 +17,7 @@ Supprime toutes les tables de la base de données.
 python -m scripts.drop_tables
 
 # Ou avec uv
-uv run python scripts/drop_tables.py
+uv run scripts/drop_tables.py
 
 # Ou directement
 cd backend

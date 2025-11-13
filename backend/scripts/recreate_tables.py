@@ -8,7 +8,7 @@ Ce script:
 Usage:
     python -m scripts.recreate_tables
     ou
-    uv run python scripts/recreate_tables.py
+    uv run scripts/recreate_tables.py
 """
 
 import asyncio

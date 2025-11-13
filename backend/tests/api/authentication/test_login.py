@@ -9,7 +9,7 @@ from api.authentication import LOGIN_BAD_CREDENTIALS
 import pytest
 from sqlalchemy import select
 
-from db.schemas import UserCreate
+from schemas import UserCreate
 from models import User
 
 

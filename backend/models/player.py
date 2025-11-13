@@ -21,7 +21,6 @@ class Player(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     lobby_id = Column(UUID(as_uuid=True), ForeignKey("lobbies.id"), nullable=False, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"), nullable=True)
     score = Column(Integer, nullable=False, default=0)
     status = Column(SQLEnum(PlayerStatus), nullable=False, default=PlayerStatus.WAITING, index=True)
     joined_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -30,11 +29,4 @@ class Player(Base):
     # Relations
     lobby = relationship("Lobby", back_populates="players")
     user = relationship("User")
-    role = relationship("Role", back_populates="players")
-    mission_players = relationship("MissionPlayer", back_populates="player", cascade="all, delete-orphan")
-
-    # Contraintes
-    __table_args__ = (
-        UniqueConstraint('lobby_id', 'user_id', name='uq_player_lobby_user'),
-    )
-
+    mission_assigned = relationship("MissionAssigned", back_populates="player", cascade="all, delete-orphan")

@@ -10,9 +10,16 @@ from db.database import Base
 
 class LobbyStatus(str, enum.Enum):
     WAITING = "waiting"
-    STARTING = "starting"
-    IN_PROGRESS = "in_progress"
-    FINISHED = "finished"
+    RUNNING = "running"
+    PAUSED = "paused"
+    ENDED = "ended"
+
+
+class LobbyPhase(str, enum.Enum):
+    NONE = "none"
+    SUGGESTION = "suggestion"
+    ROUND = "round"
+    VALIDATION = "validation"
 
 
 class Lobby(Base):
@@ -24,6 +31,7 @@ class Lobby(Base):
     game_id = Column(UUID(as_uuid=True), ForeignKey("games.id"), nullable=False)
     host_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     status = Column(SQLEnum(LobbyStatus), nullable=False, default=LobbyStatus.WAITING, index=True)
+    phase = Column(SQLEnum(LobbyPhase), nullable=False, default=LobbyPhase.NONE, index=True)
     max_players = Column(Integer, nullable=False, default=10)
     current_players = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -33,4 +41,5 @@ class Lobby(Base):
     game = relationship("Game", back_populates="lobbies")
     host = relationship("User", foreign_keys=[host_id])
     players = relationship("Player", back_populates="lobby", cascade="all, delete-orphan")
+    rounds = relationship("Round", back_populates="lobby", cascade="all, delete-orphan")
 

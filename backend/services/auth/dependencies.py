@@ -8,7 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.database import get_async_session
-from db.schemas.user import UserResponse
+from schemas.user import UserResponse
 from repositories.user_repository import UserRepository
 from repositories.token_repository import TokenRepository
 from services.notifications.dependencies import get_notification_service as get_notification_service_dependency
