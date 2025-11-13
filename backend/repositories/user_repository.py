@@ -6,7 +6,7 @@ from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import PasswordResetToken, User, AccountActivationToken
-from db.schemas import UserCreate, UserUpdate
+from schemas import UserCreate, UserUpdate
 from utils.password_hashing import hash_password
 
 

@@ -1,10 +1,13 @@
+from typing import List
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
 from uuid import UUID
 
-from models import Player, PlayerStatus
-from db.schemas import PlayerCreate, PlayerUpdate
+from schemas import MissionResponse
+from models import Player, PlayerStatus, MissionAssigned
+from schemas import PlayerCreate, PlayerUpdate
 
 
 class PlayerRepository:
@@ -19,12 +22,12 @@ class PlayerRepository:
         return result.scalar_one_or_none()
     
     async def get_player_with_relations(self, player_id: UUID) -> Player | None:
-        """Get a player with user, role and lobby"""
+        """Get a player with user, missions and lobby"""
         result = await self.db.execute(
             select(Player)
             .options(
                 selectinload(Player.user),
-                selectinload(Player.role),
+                selectinload(Player.mission_assigned),
                 selectinload(Player.lobby)
             )
             .where(Player.id == player_id)
@@ -35,7 +38,7 @@ class PlayerRepository:
         """Get all players in a lobby"""
         result = await self.db.execute(
             select(Player)
-            .options(selectinload(Player.user), selectinload(Player.role))
+            .options(selectinload(Player.user), selectinload(Player.mission_assigned))
             .where(Player.lobby_id == lobby_id)
         )
         return list(result.scalars().all())
@@ -69,8 +72,6 @@ class PlayerRepository:
         player = await self.get_player(player_id)
         if not player:
             raise ValueError("Player not found")
-        if player_data.role_id is not None:
-            player.role_id = player_data.role_id
         if player_data.score is not None:
             player.score = player_data.score
         if player_data.status is not None:
@@ -88,3 +89,12 @@ class PlayerRepository:
             return True
         return False
 
+    async def get_player_missions(self, player_id: UUID, skip: int = 0, limit: int = 100) -> List[MissionResponse]:
+        """Get the missions for a player"""
+        result = await self.db.execute(
+            select(MissionAssigned)
+            .where(MissionAssigned.player_id == player_id)
+            .offset(skip)
+            .limit(limit)
+        )
+        return list(result.scalars().all())

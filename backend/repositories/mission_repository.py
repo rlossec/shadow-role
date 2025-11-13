@@ -1,8 +1,10 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
 from uuid import UUID
 
-from models import Mission, MissionPlayer, MissionPlayerStatus
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_
+
+from schemas import MissionCreate, MissionUpdate
+from models import Mission, MissionAssigned, MissionAssignedStatus
 
 
 class MissionRepository:
@@ -23,13 +25,35 @@ class MissionRepository:
         )
         return list(result.scalars().all())
     
-    async def get_missions_by_role(self, role_id: UUID) -> list[Mission]:
-        """Get all missions for a role"""
-        result = await self.db.execute(
-            select(Mission).where(Mission.role_id == role_id)
-        )
-        return list(result.scalars().all())
+    async def create_mission(self, mission_data: MissionCreate) -> Mission:
+        """Create a new mission"""
+        mission = Mission(**mission_data.model_dump())
+        self.db.add(mission)
+        await self.db.commit()
+        await self.db.refresh(mission)
+        return mission
     
+
+    async def update_mission(self, mission_id: UUID, mission_data: MissionUpdate) -> Mission:
+        """Update a mission"""
+        mission = await self.get_mission(mission_id)
+        if mission:
+            for field, value in mission_data.model_dump(exclude_unset=True).items():
+                setattr(mission, field, value)
+            await self.db.commit()
+            await self.db.refresh(mission)
+            return mission
+
+
+    async def delete_mission(self, mission_id: UUID) -> bool:
+        """Delete a mission"""
+        mission = await self.get_mission(mission_id)
+        if mission:
+            await self.db.delete(mission)
+            await self.db.commit()
+            return True
+        return False
+
     async def get_available_missions(
         self, 
         game_id: UUID, 
@@ -37,16 +61,15 @@ class MissionRepository:
         exclude_completed: bool = True
     ) -> list[Mission]:
         """Get missions available for a player (not yet assigned or not completed)"""
-        # Missions non liées à un rôle spécifique ou missions liées mais pas encore assignées
         query = select(Mission).where(Mission.game_id == game_id)
         
         if exclude_completed:
             # Exclure les missions déjà complétées par ce joueur
             completed_mission_ids = await self.db.execute(
-                select(MissionPlayer.mission_id).where(
+                select(MissionAssigned.mission_id).where(
                     and_(
-                        MissionPlayer.player_id == player_id,
-                        MissionPlayer.status.in_([MissionPlayerStatus.COMPLETED, MissionPlayerStatus.FAILED])
+                        MissionAssigned.player_id == player_id,
+                        MissionAssigned.status.in_([MissionAssignedStatus.COMPLETED, MissionAssignedStatus.FAILED])
                     )
                 )
             )
@@ -60,20 +83,16 @@ class MissionRepository:
     async def assign_mission_to_player(
         self, 
         player_id: UUID, 
-        mission_id: UUID,
-        state: dict | None = None
-    ) -> MissionPlayer:
+        mission_id: UUID
+    ) -> MissionAssigned:
         """Assign a mission to a player"""
-        
-        
-        mission_player = MissionPlayer(
+        mission_assigned = MissionAssigned(
             player_id=player_id,
             mission_id=mission_id,
-            status=MissionPlayerStatus.ACTIVE,
-            state=state
+            status=MissionAssignedStatus.ACTIVE
         )
-        self.db.add(mission_player)
+        self.db.add(mission_assigned)
         await self.db.commit()
-        await self.db.refresh(mission_player)
-        return mission_player
+        await self.db.refresh(mission_assigned)
+        return mission_assigned
 
