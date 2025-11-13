@@ -11,8 +11,6 @@ from schemas import (
     MissionResponse,
 )
 
-from services.auth import get_current_active_user
-
 from repositories.game_repository import GameRepository
 from repositories.mission_repository import MissionRepository
 from .dependencies import get_game_repository, get_mission_repository, get_current_active_user
@@ -97,7 +95,7 @@ async def delete_game(
             detail="Game not found",
         )
 
-    await game_repository.delete_game(game)
+    await game_repository.delete_game(game_id)
 
 
 @router.get("/{game_id}/missions", response_model=List[MissionResponse])
