@@ -16,11 +16,13 @@ from main import app
 from models import *  # Import all models so Base.metadata knows about them
 from repositories.user_repository import UserRepository
 from repositories.token_repository import TokenRepository
+from repositories.gametype_repository import GameTypeRepository
 from services.auth.service import build_authentication_service
 from services.auth.token_manager import AccountActivationTokenManager
 from services.auth.link_builder import NotificationLinkBuilder
 from services.notifications.interface import NotificationService
 from services.notifications.dependencies import get_notification_service as get_notification_service_dependency
+from tests.api.helpers import init_game_types
 
 
 default_db_url = "sqlite+aiosqlite:///:memory:"
@@ -135,6 +137,32 @@ def account_activation_manager(db_session):
     """Account activation token manager wired to the test session."""
     user_repo = UserRepository(db_session)
     return AccountActivationTokenManager(user_repo)
+
+
+@pytest.fixture(scope="function")
+async def game_type_repository(db_session):
+    """Game type repository wired to the test session."""
+    return GameTypeRepository(db_session)
+
+
+@pytest.fixture(scope="function")
+async def initialized_game_types(db_session, game_type_repository):
+    """
+    Initialise les types de jeu de base pour les tests.
+    
+    Cette fixture peut être utilisée dans les tests qui ont besoin de types de jeu.
+    Elle vérifie automatiquement si les types existent déjà pour éviter les doublons.
+    
+    Retourne un tuple (game_type_repository, list[GameType]) pour faciliter l'accès aux types.
+    
+    Exemple d'utilisation:
+        async def test_create_game(client, initialized_game_types):
+            game_type_repo, game_types = initialized_game_types
+            mission_type = game_types[0]  # Premier type (Mission)
+            # Utiliser mission_type.id pour créer un jeu
+    """
+    game_types = await init_game_types(game_type_repository)
+    return game_type_repository, game_types
 
 
 @pytest.fixture(scope="session", autouse=True)
