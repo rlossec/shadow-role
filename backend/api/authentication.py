@@ -64,15 +64,6 @@ async def login(
     return TokenPair(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
-@router.post("/refresh", response_model=TokenPair)
-async def refresh_token(
-    payload: RefreshRequest,
-    auth_service: AuthenticationService = Depends(get_authentication_service),
-):
-    access_token, refresh_token = await auth_service.rotate_refresh_token(payload.refresh_token)
-    return TokenPair(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
-
-
 @router.post("/jwt/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
     payload: RefreshRequest,
@@ -82,11 +73,58 @@ async def logout(
     return None
 
 
-@router.get("/me", response_model=UserResponse)
-async def read_current_user(
-    current_user: UserResponse = Depends(get_current_active_user),
-) -> UserResponse:
-    return current_user
+@router.post("/refresh", response_model=TokenPair)
+async def refresh_token(
+    payload: RefreshRequest,
+    auth_service: AuthenticationService = Depends(get_authentication_service),
+):
+    access_token, refresh_token = await auth_service.rotate_refresh_token(payload.refresh_token)
+    return TokenPair(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
+
+
+@router.post("/activate-account", response_model=UserResponse)
+async def activate_account(
+    payload: AccountActivationConfirmRequest,
+    auth_service: AuthenticationService = Depends(get_authentication_service),
+    account_activation_manager: AccountActivationTokenManager = Depends(get_account_activation_manager),
+):
+    account_activation_token = await account_activation_manager.verify_token(payload.token)
+    if not account_activation_token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ACCOUNT_ACTIVATION_BAD_TOKEN)
+
+    if str(account_activation_token.user_id) != str(payload.user_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ACCOUNT_ACTIVATION_BAD_TOKEN)
+
+    await auth_service.set_user_active(account_activation_token.user_id, True)
+    await account_activation_manager.mark_token_used(account_activation_token)
+
+    user = await auth_service.get_user_by_id(account_activation_token.user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ACCOUNT_ACTIVATION_BAD_TOKEN)
+
+    await auth_service.notify_activation_confirmation(user)
+
+    return UserResponse.model_validate(user)
+
+
+@router.post(
+    "/resend_activation",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=AccountActivationResponse,
+)
+async def resend_activation(
+    payload: AccountActivationRequest,
+    auth_service: AuthenticationService = Depends(get_authentication_service),
+    account_activation_manager: AccountActivationTokenManager = Depends(get_account_activation_manager),
+):
+    user = await auth_service.get_user_by_email(payload.email)
+    if not user or user.is_active:
+        return AccountActivationResponse(activation_token=None, user_id=None)
+
+    token = await account_activation_manager.create_token(user)
+    await auth_service.notify_account_activation(user, token)
+    return AccountActivationResponse(activation_token=token, user_id=user.id)
+
 
 
 @router.post(
@@ -126,45 +164,8 @@ async def reset_password(
     return None
 
 
-@router.post(
-    "/resend_activation",
-    status_code=status.HTTP_202_ACCEPTED,
-    response_model=AccountActivationResponse,
-)
-async def resend_activation(
-    payload: AccountActivationRequest,
-    auth_service: AuthenticationService = Depends(get_authentication_service),
-    account_activation_manager: AccountActivationTokenManager = Depends(get_account_activation_manager),
-):
-    user = await auth_service.get_user_by_email(payload.email)
-    if not user or user.is_active:
-        return AccountActivationResponse(activation_token=None, user_id=None)
-
-    token = await account_activation_manager.create_token(user)
-    await auth_service.notify_account_activation(user, token)
-    return AccountActivationResponse(activation_token=token, user_id=user.id)
-
-
-@router.post("/activate-account", response_model=UserResponse)
-async def activate_account(
-    payload: AccountActivationConfirmRequest,
-    auth_service: AuthenticationService = Depends(get_authentication_service),
-    account_activation_manager: AccountActivationTokenManager = Depends(get_account_activation_manager),
-):
-    account_activation_token = await account_activation_manager.verify_token(payload.token)
-    if not account_activation_token:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ACCOUNT_ACTIVATION_BAD_TOKEN)
-
-    if str(account_activation_token.user_id) != str(payload.user_id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ACCOUNT_ACTIVATION_BAD_TOKEN)
-
-    await auth_service.set_user_active(account_activation_token.user_id, True)
-    await account_activation_manager.mark_token_used(account_activation_token)
-
-    user = await auth_service.get_user_by_id(account_activation_token.user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ACCOUNT_ACTIVATION_BAD_TOKEN)
-
-    await auth_service.notify_activation_confirmation(user)
-
-    return UserResponse.model_validate(user)
+@router.get("/me", response_model=UserResponse)
+async def read_current_user(
+    current_user: UserResponse = Depends(get_current_active_user),
+) -> UserResponse:
+    return current_user

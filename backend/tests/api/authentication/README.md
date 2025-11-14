@@ -1,78 +1,90 @@
-# Tests d'authentification
+# Tests pour les endpoints d'authentification
 
-Ce dossier contient les tests unitaires pour les endpoints d'authentification. Les données de préparation utilisent principalement la fixture `auth_service` (voir `tests/conftest.py`) afin de créer les utilisateurs directement via le service métier, puis chaque test cible l'endpoint HTTP concerné.
+## Structure
 
-## Tests disponibles
+Cette suite de tests est organisée par endpoint, avec un fichier dédié pour chaque route :
 
-### test_register.py
+- `test_register.py` - POST `/auth/register`
+- `test_login.py` - POST `/auth/jwt/login`
+- `test_refresh.py` - POST `/auth/refresh`
+- `test_activate_account.py` - POST `/auth/activate-account`
+- `test_resend_activation.py` - POST `/auth/resend_activation`
+- `test_request_reset_password.py` - POST `/auth/request-reset-password`
+- `test_reset_password.py` - POST `/auth/reset-password`
+- `helpers.py` - Payloads de base, constantes et utilitaires réutilisables
 
-Tests pour l'endpoint `/auth/register` :
+## Organisation des tests
 
-- ✅ `test_register_success` - Enregistrement réussi
-- ✅ `test_register_duplicate_username` - Rejet d'un username dupliqué (via `auth_service`)
-- ✅ `test_register_duplicate_email` - Rejet d'un email dupliqué (via `auth_service`)
-- ✅ `test_register_invalid_email` - Rejet d'un email invalide
-- ✅ `test_register_missing_fields` - Rejet si champs manquants
-- ✅ `test_register_empty_fields` - Rejet si champs vides
-- ✅ `test_register_weak_password` - Test avec mot de passe faible
-- ✅ `test_register_special_characters_in_username` - Test avec caractères spéciaux
+Chaque fichier de test est organisé par code de statut HTTP avec des séparateurs clairs :
 
-### test_login.py
+```python
+# 200/201/202/204 - Success
+@pytest.mark.asyncio
+async def test_xxx_success(...):
+    ...
 
-Tests pour l'endpoint `/auth/jwt/login` :
+# 400 - Bad Request
+@pytest.mark.asyncio
+async def test_xxx_bad_request(...):
+    ...
 
-- ✅ `test_login_success_with_username` - Connexion réussie avec username (setup via `auth_service`)
-- ✅ `test_login_success_with_email` - Connexion réussie avec email
-- ✅ `test_login_wrong_password` - Rejet avec mauvais mot de passe
-- ✅ `test_login_nonexistent_user` - Rejet avec utilisateur inexistant (username)
-- ✅ `test_login_nonexistent_email` - Rejet avec utilisateur inexistant (email)
-- ✅ `test_login_inactive_user` - Rejet avec utilisateur inactif (désactivation via SQLAlchemy)
-- ✅ `test_login_missing_credentials` - Rejet si credentials manquants
-- ✅ `test_login_empty_credentials` - Rejet si credentials vides
-- ✅ `test_login_username_vs_email_same_value` - Test username/email identiques
+# 422 - Unprocessable Entity (validation)
+@pytest.mark.asyncio
+async def test_xxx_validation_error(...):
+    ...
 
-### test_logout.py
+# 401 - Unauthorized
+@pytest.mark.asyncio
+async def test_xxx_unauthorized(...):
+    ...
+```
 
-Tests pour l'endpoint `/auth/jwt/logout` :
+## Payloads de base et helpers
 
-- ✅ `test_logout_success` - Logout avec token valide
-- ✅ `test_logout_without_token_returns_401` - Logout protégé sans token
+Les payloads de base, constantes et helpers sont définis dans `helpers.py` :
 
-### test_request_reset_password.py
+### Payloads
 
-Tests pour l'endpoint `/auth/request-reset-password` :
+- `get_base_register_payload(...)` - Pour créer un utilisateur
+- `get_base_login_form_data(...)` - Pour le login (form-urlencoded)
+- `get_base_login_headers()` - Headers pour le login
+- `get_base_refresh_payload(refresh_token)` - Pour rafraîchir un token
+- `get_base_account_activation_request_payload(email)` - Pour demander l'activation
+- `get_base_account_activation_confirm_payload(user_id, token)` - Pour confirmer l'activation
+- `get_base_password_reset_request_payload(email)` - Pour demander la réinitialisation
+- `get_base_password_reset_confirm_payload(user_id, token, password)` - Pour confirmer la réinitialisation
 
-- ✅ `test_request_reset_password_generates_token` - Génération d'un couple `(user_id, token)` de réinitialisation
+### Helpers d'utilisateurs
 
-### test_reset_password.py
+- `create_active_user(auth_service, username, email, password)` - Crée un utilisateur actif
+- `create_inactive_user(auth_service, username, email, password)` - Crée un utilisateur inactif
 
-Tests pour l'endpoint `/auth/reset-password` :
+### Constantes
 
-- ✅ `test_reset_password_success` - Réinitialisation avec `(user_id, token)` valide
-- ✅ `test_reset_password_invalid_token` - Rejet d'un couple invalide
+- `LOGIN_BAD_CREDENTIALS` - Message d'erreur pour identifiants incorrects
+- `RESET_PASSWORD_BAD_TOKEN` - Message d'erreur pour token de réinitialisation invalide
+- `ACCOUNT_ACTIVATION_BAD_TOKEN` - Message d'erreur pour token d'activation invalide
+- `REGISTER_DUPLICATE_USERNAME` - Message d'erreur pour username dupliqué
+- `REGISTER_DUPLICATE_EMAIL` - Message d'erreur pour email dupliqué
 
-### test_resend_activation.py
+### Champs obligatoires
 
-Tests pour l'endpoint `/auth/resend_activation` :
+Des constantes listent les champs obligatoires pour chaque endpoint :
 
-- ✅ `test_resend_activation_success` - Génère `(user_id, token)` pour un compte inactif
-- ✅ `test_resend_activation_unknown_email_returns_no_token` - Pas de fuite d'information si l’email est inconnu
-- ✅ `test_resend_activation_user_already_active_returns_no_token` - Aucun token renvoyé si le compte est déjà actif
+- `REGISTER_REQUIRED_FIELDS` - Champs obligatoires pour l'inscription
+- `LOGIN_REQUIRED_FIELDS` - Champs obligatoires pour le login
+- `REFRESH_REQUIRED_FIELDS` - Champs obligatoires pour le refresh
+- Etc.
 
-### test_activate_account.py
+## Tests itératifs pour champs obligatoires
 
-Tests pour l'endpoint `/auth/activate-account` :
+Pour les endpoints avec des champs obligatoires (comme POST `/auth/register` ou POST `/auth/jwt/login`), un test paramétré itère automatiquement sur tous les champs requis :
 
-- ✅ `test_activate_account_user_success` - Activation réussie avec `(user_id, token)` valide
-- ✅ `test_activate_account_with_bad_token_returns_400` - Rejet d'un couple invalide
-
-### test_refresh.py
-
-Tests pour l'endpoint `/auth/refresh` :
-
-- ✅ `test_refresh_success` - Génère un nouveau couple access/refresh
-- ✅ `test_refresh_with_invalid_token_returns_401` - Rejette un refresh invalide
-- ✅ `test_refresh_with_access_token_returns_401` - Refuse un access token passé en refresh
+```python
+@pytest.mark.parametrize("missing_field", REGISTER_REQUIRED_FIELDS)
+async def test_register_missing_required_fields(..., missing_field):
+    # Teste chaque champ obligatoire individuellement
+```
 
 ## Exécution des tests
 
@@ -85,10 +97,10 @@ uv run pytest tests/api/authentication/ -v
 ### Tests spécifiques
 
 ```bash
-# Tous les tests de register
+# Tous les tests d'inscription
 uv run pytest tests/api/authentication/test_register.py -v
 
-# Tous les tests de login
+# Tous les tests de connexion
 uv run pytest tests/api/authentication/test_login.py -v
 
 # Un test spécifique
@@ -99,37 +111,79 @@ uv run pytest tests/api/authentication/test_login.py::test_login_success_with_us
 ### Avec couverture de code
 
 ```bash
-uv run pytest tests/api/authentication/ --cov=services.authentication --cov-report=html
+uv run pytest tests/api/authentication/ --cov=api.authentication --cov-report=html
 ```
+
+## Couverture des tests
+
+Chaque endpoint est testé pour :
+
+### POST `/auth/register`
+- ✅ Cas de succès (status 201)
+- ✅ Validation des champs obligatoires (status 422)
+- ✅ Validation des emails invalides (status 422)
+- ✅ Validation des champs vides (status 422)
+- ✅ Validation des mots de passe correspondants (status 422)
+- ✅ Doublons username/email (status 400)
+
+### POST `/auth/jwt/login`
+- ✅ Cas de succès avec username (status 200)
+- ✅ Cas de succès avec email (status 200)
+- ✅ Mauvais identifiants (status 400)
+- ✅ Utilisateur inexistant (status 400)
+- ✅ Utilisateur inactif (status 400/401)
+- ✅ Validation des champs obligatoires (status 422)
+- ✅ Validation des champs vides (status 400)
+
+### POST `/auth/refresh`
+- ✅ Cas de succès (status 200)
+- ✅ Rotation des tokens
+- ✅ Réutilisation du refresh token (status 401)
+- ✅ Token invalide (status 401)
+- ✅ Utilisation d'un access token comme refresh (status 401)
+- ✅ Révoquement après logout (status 401)
+
+### POST `/auth/activate-account`
+- ✅ Cas de succès (status 200)
+- ✅ Token invalide (status 400)
+
+### POST `/auth/resend_activation`
+- ✅ Cas de succès (status 202)
+- ✅ Email inconnu (status 202, pas de token)
+- ✅ Utilisateur déjà actif (status 202, pas de token)
+
+### POST `/auth/request-reset-password`
+- ✅ Génération de token (status 202)
+
+### POST `/auth/reset-password`
+- ✅ Cas de succès (status 200/204)
+- ✅ Token invalide (status 400)
 
 ## Notes importantes
 
 1. **Base de données de test** : Les tests utilisent SQLite en mémoire, donc chaque test a une base de données propre.
 2. **Isolation** : Chaque test est isolé et utilise une session de base de données séparée.
-3. **Fixtures** : `client`, `db_session`, `auth_service` et `account_activation_manager` sont définies dans `tests/conftest.py`. `auth_service` encapsule `UserRepository` et `JWTRepository` avec la session de test.
-4. **Stratégie** : Les tests préparent généralement leurs données via `auth_service` puis consomment l'endpoint HTTP pour l’action à valider.
-
-## Structure des tests
-
-Chaque test suit cette structure :
-
-1. **Setup** : Création des données nécessaires (utilisateur, token, etc.) via fixtures/services.
-2. **Action** : Appel à l'endpoint ciblé.
-3. **Assertion** : Vérification des résultats attendus (status code, payload, état en base).
+3. **Fixtures** : `client`, `db_session`, `auth_service` et `account_activation_manager` sont définies dans `tests/conftest.py`.
+4. **Stratégie** : Les tests préparent généralement leurs données via `auth_service` puis consomment l'endpoint HTTP pour l'action à valider.
+5. **Helpers réutilisables** : Utilisez les helpers de `helpers.py` pour éviter la duplication de code.
 
 ## Ajout de nouveaux tests
 
 Pour ajouter un nouveau test :
 
-1. Créez une fonction de test avec le préfixe `test_`.
-2. Utilisez `@pytest.mark.asyncio`.
-3. Utilisez les fixtures `client`, `db_session`, `auth_service` selon les besoins.
-4. Faites des assertions claires et précises.
+1. Utilisez les payloads de base depuis `helpers.py`
+2. Créez une fonction de test avec le préfixe `test_`
+3. Utilisez `@pytest.mark.asyncio`
+4. Organisez par code de statut avec des séparateurs `# <status code>`
+5. Faites des assertions claires et précises
+
+Exemple :
 
 ```python
+# 200 - Success
 @pytest.mark.asyncio
 async def test_my_new_test(client, auth_service):
-    await auth_service.register_user(...)
-    response = await client.post(...)
-    assert response.status_code == 200
+    payload = get_base_register_payload()
+    response = await client.post("/auth/register", json=payload)
+    assert response.status_code == 201
 ```
