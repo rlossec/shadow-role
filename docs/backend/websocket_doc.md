@@ -8,7 +8,7 @@
 ```ts
 import { io } from "socket.io-client";
 
-const socket = io("https://api.shadowrole.io", {
+const socket = io("https://<domaine_api>.io", {
   path: "/ws/socket.io",
   auth: { token: localStorage.getItem("access_token") },
 });
@@ -17,16 +17,7 @@ const socket = io("https://api.shadowrole.io", {
 ### Authentification Socket.IO
 
 - Le JWT (access token) est transmis via `auth.token` dans le handshake.
-- Côté serveur, le handler `connect` valide le token et enregistre un snapshot utilisateur :
-
-```python
-@sio_server.event
-def connect(sid, environ, auth):
-    token = (auth or {}).get("token")
-    user = _get_user_from_token(token)  # vérification JWT / utilisateur actif
-    manager.register(sid, user)
-    sio_server.emit("connection_ready", {"user": manager.serialize_user(...)}, to=sid)
-```
+- Côté serveur, le handler `connect` valide le token et enregistre un utilisateur :
 
 ## Messages WebSocket
 
@@ -46,9 +37,9 @@ def connect(sid, environ, auth):
 
 | Événement                      | Description                           | Payload attendu                                        |
 | ------------------------------ | ------------------------------------- | ------------------------------------------------------ |
-| `join_lobby`                   | Rejoint un lobby                      | `{ lobby_id: number, alias?: string, color?: string }` |
+| `join_lobby`                   | Rejoint un lobby                      | `{ lobby_id: string, alias?: string, color?: string }` |
 | `update_status`                | Change son état (prêt, inactif, etc.) | `{ status: string }`                                   |
-| `complete_mission`             | Indique une mission accomplie         | `{ mission_id: number }`                               |
+| `complete_mission`             | Indique une mission accomplie         | `{ mission_id: string }`                               |
 | `lobby:start_game`             | Démarre ou reprend la partie          | `{}`                                                   |
 | `lobby:pause_game`             | Met la partie en pause                | `{}`                                                   |
 | `lobby:start_proposal_phase`   | Lance la phase de propositions        | `{}`                                                   |
