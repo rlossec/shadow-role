@@ -1,11 +1,12 @@
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 
 from schemas import MissionCreate, MissionUpdate
 from models import Mission, MissionAssigned, MissionAssignedStatus
-
+from repositories import GameRepository
 
 class MissionRepository:
     """Repository for the mission model"""
@@ -28,6 +29,12 @@ class MissionRepository:
     async def create_mission(self, mission_data: MissionCreate) -> Mission:
         """Create a new mission"""
         mission = Mission(**mission_data.model_dump())
+        if mission_data.game_id is not None:
+            # Vérifier que le game_id correspond à un game existant
+            game_repo = GameRepository(self.db)
+            game = await game_repo.get_game(mission_data.game_id)
+            if game is None:
+                raise HTTPException(status_code=404, detail="Game not found")
         self.db.add(mission)
         await self.db.commit()
         await self.db.refresh(mission)
