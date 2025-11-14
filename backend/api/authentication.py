@@ -39,7 +39,7 @@ REGISTER_SPECIAL_CHARACTERS_IN_USERNAME = "Special characters are not allowed in
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, name="register")
 async def register_user(
     payload: UserCreate,
     auth_service: AuthenticationService = Depends(get_authentication_service),
@@ -51,7 +51,7 @@ async def register_user(
     return UserResponse.model_validate(user)
 
 
-@router.post("/jwt/login", response_model=TokenPair)
+@router.post("/jwt/login", response_model=TokenPair, name="login")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     auth_service: AuthenticationService = Depends(get_authentication_service),
@@ -64,7 +64,7 @@ async def login(
     return TokenPair(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
-@router.post("/jwt/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/jwt/logout", status_code=status.HTTP_204_NO_CONTENT, name="logout")
 async def logout(
     payload: RefreshRequest,
     auth_service: AuthenticationService = Depends(get_authentication_service),
@@ -73,7 +73,7 @@ async def logout(
     return None
 
 
-@router.post("/refresh", response_model=TokenPair)
+@router.post("/refresh", response_model=TokenPair, name="refresh_token")
 async def refresh_token(
     payload: RefreshRequest,
     auth_service: AuthenticationService = Depends(get_authentication_service),
@@ -82,7 +82,7 @@ async def refresh_token(
     return TokenPair(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
-@router.post("/activate-account", response_model=UserResponse)
+@router.post("/activate-account", response_model=UserResponse, name="activate_account")
 async def activate_account(
     payload: AccountActivationConfirmRequest,
     auth_service: AuthenticationService = Depends(get_authentication_service),
@@ -111,6 +111,7 @@ async def activate_account(
     "/resend_activation",
     status_code=status.HTTP_202_ACCEPTED,
     response_model=AccountActivationResponse,
+    name="resend_activation",
 )
 async def resend_activation(
     payload: AccountActivationRequest,
@@ -131,6 +132,7 @@ async def resend_activation(
     "/request-reset-password",
     status_code=status.HTTP_202_ACCEPTED,
     response_model=PasswordResetResponse,
+    name="request_reset_password",
 )
 async def request_reset_password(
     payload: PasswordResetEmailRequest,
@@ -146,7 +148,7 @@ async def request_reset_password(
     return PasswordResetResponse(reset_token=token, user_id=user.id)
 
 
-@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT, name="reset_password")
 async def reset_password(
     payload: PasswordResetConfirmRequest,
     auth_service: AuthenticationService = Depends(get_authentication_service),
@@ -164,7 +166,7 @@ async def reset_password(
     return None
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserResponse, name="get_current_user")
 async def read_current_user(
     current_user: UserResponse = Depends(get_current_active_user),
 ) -> UserResponse:

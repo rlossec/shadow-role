@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{player_id}", response_model=PlayerResponse)
+@router.get("/{player_id}", response_model=PlayerResponse, name="get_player")
 async def get_player(
     player_id: UUID,
     player_repository: PlayerRepository = Depends(get_player_repository),
@@ -33,7 +33,7 @@ async def get_player(
     return response
 
 
-@router.put("/{player_id}", response_model=PlayerResponse)
+@router.put("/{player_id}", response_model=PlayerResponse, name="update_player")
 async def update_player(
     player_id: UUID,
     player_data: PlayerUpdate,
@@ -66,7 +66,7 @@ async def update_player(
     return PlayerResponse.model_validate(updated_player)
 
 
-@router.get("/{player_id}/mission")
+@router.get("/{player_id}/mission", name="get_player_missions")
 async def get_player_missions(
     player_id: UUID,
     player_repository: PlayerRepository = Depends(get_player_repository),
@@ -104,7 +104,7 @@ async def get_player_missions(
     return [MissionResponse.model_validate(mission) for mission in missions]
 
 
-@router.get("/lobby/{lobby_id}", response_model=List[PlayerResponse])
+@router.get("/lobby/{lobby_id}", response_model=List[PlayerResponse], name="get_lobby_players")
 async def get_lobby_players(
     lobby_id: UUID,
     lobby_repository: LobbyRepository = Depends(get_lobby_repository),

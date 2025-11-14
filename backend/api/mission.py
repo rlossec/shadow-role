@@ -17,7 +17,7 @@ router = APIRouter(
 
 
 # Créer une mission
-@router.post("", response_model=MissionResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=MissionResponse, status_code=status.HTTP_201_CREATED, name="create_mission")
 async def create_mission(
     mission_data: MissionCreate,
     mission_repository: MissionRepository = Depends(get_mission_repository),
@@ -30,7 +30,7 @@ async def create_mission(
 
 
 # Récupérer une mission
-@router.get("/{mission_id}", response_model=MissionResponse)
+@router.get("/{mission_id}", response_model=MissionResponse, name="get_mission")
 async def get_mission(
     mission_id: UUID,
     mission_repository: MissionRepository = Depends(get_mission_repository),
@@ -46,7 +46,7 @@ async def get_mission(
 
 
 # Mettre à jour une mission
-@router.put("/{mission_id}", response_model=MissionResponse)
+@router.put("/{mission_id}", response_model=MissionResponse, name="update_mission")
 async def update_mission(
     mission_id: UUID,
     mission_data: MissionUpdate,
@@ -63,7 +63,7 @@ async def update_mission(
 
 
 # Supprimer une mission
-@router.delete("/{mission_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{mission_id}", status_code=status.HTTP_204_NO_CONTENT, name="delete_mission")
 async def delete_mission(
     mission_id: UUID,
     mission_repository: MissionRepository = Depends(get_mission_repository),
@@ -78,7 +78,7 @@ async def delete_mission(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 # Récupérer les missions d'un jeu
-@router.get("/game/{game_id}", response_model=List[MissionResponse])
+@router.get("/game/{game_id}", response_model=List[MissionResponse], name="get_missions_by_game")
 async def get_missions_by_game(
     game_id: UUID,
     mission_repository: MissionRepository = Depends(get_mission_repository),

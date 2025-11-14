@@ -21,7 +21,7 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=List[GameResponse])
+@router.get("", response_model=List[GameResponse], name="list_games")
 async def list_games(
     skip: int = 0,
     limit: int = 100,
@@ -33,7 +33,7 @@ async def list_games(
     return [GameResponse.model_validate(game) for game in games]
 
 
-@router.post("", response_model=GameResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=GameResponse, status_code=status.HTTP_201_CREATED, name="create_game")
 async def create_game(
     data: GameCreate,
     game_repository: GameRepository = Depends(get_game_repository),
@@ -44,7 +44,7 @@ async def create_game(
     return GameResponse.model_validate(game)
 
 
-@router.get("/{game_id}", response_model=GameResponse)
+@router.get("/{game_id}", response_model=GameResponse, name="get_game")
 async def get_game(
     game_id: UUID,
     game_repository: GameRepository = Depends(get_game_repository),
@@ -61,7 +61,7 @@ async def get_game(
     return GameResponse.model_validate(game)
 
 
-@router.put("/{game_id}", response_model=GameResponse)
+@router.put("/{game_id}", response_model=GameResponse, name="update_game")
 async def update_game(
     game_id: UUID,
     data: GameUpdate,
@@ -81,7 +81,7 @@ async def update_game(
     return GameResponse.model_validate(updated_game)
 
 
-@router.delete("/{game_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{game_id}", status_code=status.HTTP_204_NO_CONTENT, name="delete_game")
 async def delete_game(
     game_id: UUID,
     game_repository: GameRepository = Depends(get_game_repository),
@@ -98,7 +98,7 @@ async def delete_game(
     await game_repository.delete_game(game_id)
 
 
-@router.get("/{game_id}/missions", response_model=List[MissionResponse])
+@router.get("/{game_id}/missions", response_model=List[MissionResponse], name="get_game_missions")
 async def get_game_missions(
     game_id: UUID,
     game_repository: GameRepository = Depends(get_game_repository),
