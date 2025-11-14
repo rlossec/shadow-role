@@ -1,10 +1,9 @@
 stateDiagram-v2
     [*] --> LobbyCreated
-    LobbyCreated --> GamePending : start_game
-    GamePending --> SuggestionRunning : start_suggestion
-    SuggestionRunning --> GamePending : end_suggestion
-    GamePending --> RoundRunning : start_round
+    LobbyCreated --> GameWaiting : start_game
+    GameWaiting --> SuggestionRunning : start_suggestion
+    SuggestionRunning --> GameWaiting : end_suggestion
+    GameWaiting --> RoundRunning : start_round
     RoundRunning --> ValidationRunning : start_check
-    ValidationRunning --> GamePending : end_round
-    GamePending --> GameEnded : end_game
-    GamePending --> [*]
+    ValidationRunning --> GameWaiting : end_round
+    GameWaiting --> GameEnded : end_game

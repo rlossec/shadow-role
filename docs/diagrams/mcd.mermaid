@@ -1,92 +1,87 @@
 erDiagram
     USER {
-        uuid id PK
-        string username
-        string email UK
-        string hashed_password
-        datetime created_at
-        datetime updated_at
-        boolean is_active
-        boolean is_superuser
+        id uuid PK
+        username string
+        email string UK
+        hashed_password string
+        created_at datetime
+        updated_at datetime
+        is_active boolean
+        is_superuser boolean
     }
 
     LOBBY {
-        uuid id PK
-        string name
-        string code UK
-        uuid game_id FK
-        uuid host_id FK
-        enum status "waiting" | "running" | "paused" | "ended"
-        enum phase "none" | "suggestion" | "round" | "validation"
-        int max_players
-        int current_players
-        datetime created_at
-        datetime expires_at
+        id uuid PK
+        name string
+        code string UK
+        game_id uuid FK
+        host_id uuid FK
+        status enum "waiting | running | paused | ended"
+        phase enum "none | suggestion | round | validation"
+        max_players int
+        created_at datetime
+        expires_at datetime
     }
 
     ROUND {
-        uuid id PK
-        uuid lobby_id FK
+        id uuid PK
+        lobby_id uuid FK
+        round_number int
+        status enum "running | finished"
+        started_at datetime
+        ended_at datetime "nullable"
     }
 
     GAME {
-        uuid id PK
-        string name
-        string description
-        text rules
-        enum type "role_based|mission_based|hybrid"
-        json config
-        datetime created_at
-        datetime updated_at
+        id uuid PK
+        name string
+        description string
+        image_url string
+        min_players int
+        max_players int
+        created_at datetime
+        updated_at datetime
+        tags string[]
+        game_type_id uuid FK
     }
 
     MISSION {
-        uuid id PK
-        uuid game_id FK
-        uuid role_id FK "nullable"
-        string title
-        text description
-        int difficulty
-    }
-
-    ROLE {
-        uuid id PK
-        uuid game_id FK
-        string name
-        text description
-        string image_url
-        int min_players
+        id uuid PK
+        game_id uuid FK
+        title string
+        created_by uuid FK "nullable"
+        type enum "mission | role | hybrid"
+        description text
+        image_url string "nullable"
+        difficulty int
     }
 
     PLAYER {
-        uuid id PK
-        uuid lobby_id FK
-        uuid user_id FK
-        uuid role_id FK "nullable"
-        int score
-        enum status "waiting|playing|completed|left"
-        datetime joined_at
-        datetime left_at
+        id uuid PK
+        lobby_id uuid FK
+        user_id uuid FK
+        score int
+        status enum "waiting | playing | completed | left"
+        joined_at datetime
+        left_at datetime "nullable"
     }
 
     MISSION_PLAYER {
-        uuid id PK
-        uuid player_id FK
-        uuid mission_id FK
-        json state "état évolutif de la mission"
-        enum status "active|completed|failed|cancelled"
-        datetime assigned_at
-        datetime completed_at "nullable"
+        id uuid PK
+        player_id uuid FK
+        mission_id uuid FK
+        status enum "active|completed|failed|cancelled"
+        assigned_at datetime
+        completed_at datetime "nullable"
     }
 
     %% Relations
     USER ||--o{ LOBBY : "hosts"
     USER ||--o{ PLAYER : "participates"
+    USER ||--o{ MISSION : "creates"
     LOBBY ||--o{ PLAYER : "contains"
+    LOBBY ||--o{ ROUND : "has"
     LOBBY }o--|| GAME : "uses"
     GAME ||--o{ MISSION : "has"
-    GAME ||--o{ ROLE : "defines"
-    ROLE }o--o| MISSION : "optionally_linked"
-    PLAYER }o--|| ROLE : "assigned"
     PLAYER ||--o{ MISSION_PLAYER : "has"
     MISSION }o--o{ MISSION_PLAYER : "assigned_to"
