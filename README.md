@@ -37,9 +37,17 @@ npm install                          # Installer les dépendances
 npm run dev                          # Lancer le serveur
 ```
 
+#### SMTP
+
+```bash
+cd fake_smtp
+docker-compose up -d
+```
+
 Le frontend sera accessible sur `http://localhost:5173`
 Le backend sera accessible sur `http://localhost:8000`
 Documentation API disponible sur `http://localhost:8000/docs`
+Le fake SMPT disponible sur `http://localhost:8025/`
 
 ### Lancement avec Docker
 
@@ -51,26 +59,30 @@ Cette commande lance simultanément le backend, le frontend et la base de donné
 
 ## 🗂️ Structure du projet
 
-| Domaine        | Dossier                               | Description                 |
-| -------------- | ------------------------------------- | --------------------------- |
-| Documentation  | `/docs`                               | Schémas, architecture, flux |
-| Backend (REST) | `/backend/routers`                    | Endpoints API               |
-| WebSocket      | `/backend/ws`                         | Temps réel par lobby        |
-| Frontend       | `/frontend/src`                       | React + Hooks + Context     |
-| Données        | `/backend/models`, `/backend/schemas` | Modèles et validation       |
+| Domaine        | Dossier              | Description                 |
+| -------------- | -------------------- | --------------------------- |
+| Documentation  | `/docs`              | Schémas, architecture, flux |
+| Backend (REST) | `/backend/api    `   | Endpoints API               |
+| WebSocket      | `/backend/websocket` | Temps réel par lobby        |
+| Frontend       | `/frontend/src`      | React + Hooks + Context     |
 
 ### Arborescence
 
 ```
 ├── backend/
-│   ├── app/
-│   │   ├── main.py                # Point d’entrée FastAPI
-│   │   ├── routers/
-│   │   ├── core/
-│   │   ├── models/                # Modèles SQLAlchemy
-│   │   ├── schemas/               # Pydantic
-│   │   └── services/              # Logique métier
-│   ├── tests/                     # Tests unitaires backend
+
+│   ├── api/
+│   ├── core/
+│   │   └── config.py
+│   ├── db/
+│   │   └── schemas/           # Pydantic
+│   ├── models/                # Modèles SQLAlchemy
+│   ├── repositories/
+│   ├── services /             # Logique métier
+│   ├── utils /                #
+│   ├── websocket/             #
+│   ├── tests/                 # Tests unitaires backend
+│   ├── main.py                # Point d’entrée FastAPI
 │   └── pyproject.toml
 │
 ├── frontend/
@@ -85,6 +97,5 @@ Cette commande lance simultanément le backend, le frontend et la base de donné
 │   ├── package.json
 │   └── tailwind.config.js
 │
-├── docker-compose.yml
 ├── README.md
 ```
