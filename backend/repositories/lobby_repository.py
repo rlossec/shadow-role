@@ -53,7 +53,8 @@ class LobbyRepository:
             )
             .where(Lobby.code == code)
         )
-        return result.unique().scalar_one_or_none()
+        lobby = result.unique().scalar_one_or_none()
+        return lobby
     
     async def get_lobbies(self, skip: int = 0, limit: int = 100) -> list[Lobby]:
         """Get lobbies"""
@@ -92,16 +93,20 @@ class LobbyRepository:
         if not lobby:
             raise ValueError("Lobby not found")
         
-        if lobby_data.status is not None:
-            lobby.status = lobby_data.status
-        if lobby_data.name is not None:
-            lobby.name = lobby_data.name
-        if lobby_data.max_players is not None:
-            lobby.max_players = lobby_data.max_players
+        for field, value in lobby_data.model_dump(exclude_unset=True).items():
+            setattr(lobby, field, value)
         
         await self.db.commit()
         await self.db.refresh(lobby)
-        return lobby
+        
+        # Recharger avec les relations si nécessaire
+        result = await self.db.execute(
+            select(Lobby)
+            .options(selectinload(Lobby.game), selectinload(Lobby.players))
+            .where(Lobby.id == lobby_id)
+        )
+        updated_lobby = result.unique().scalar_one()
+        return updated_lobby
 
     async def add_player(self, lobby_id: UUID, user_id: UUID) -> None:
         """Add a player to a lobby"""
