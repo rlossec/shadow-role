@@ -11,6 +11,7 @@ from sqlalchemy import select
 from models.user import User
 from tests.api.authentication.helpers import (
     get_base_account_activation_confirm_payload,
+    get_activate_account_url,
     create_inactive_user,
     ACCOUNT_ACTIVATION_BAD_TOKEN,
 )
@@ -36,7 +37,7 @@ async def test_activate_account_user_success(
     activation_token = await account_activation_manager.create_token(user)
     
     payload = get_base_account_activation_confirm_payload(str(user.id), activation_token)
-    activation_response = await client.post("/auth/activate-account", json=payload)
+    activation_response = await client.post(get_activate_account_url(), json=payload)
     
     assert activation_response.status_code == 200
     data = activation_response.json()
@@ -65,7 +66,7 @@ async def test_activate_account_with_bad_token_returns_400(client):
         "00000000-0000-0000-0000-000000000000",
         "mauvais-token"
     )
-    response = await client.post("/auth/activate-account", json=payload)
+    response = await client.post(get_activate_account_url(), json=payload)
     
     assert response.status_code == 400
     assert response.json()["detail"] == ACCOUNT_ACTIVATION_BAD_TOKEN

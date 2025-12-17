@@ -9,6 +9,7 @@ import pytest
 
 from tests.api.authentication.helpers import (
     get_base_account_activation_request_payload,
+    get_resend_activation_url,
     create_inactive_user,
 )
 
@@ -20,7 +21,7 @@ async def test_resend_activation_success(client, auth_service):
     await create_inactive_user(auth_service, "activate_user", "activate@example.com", "activatepass123")
     
     payload = get_base_account_activation_request_payload("activate@example.com")
-    response = await client.post("/auth/resend_activation", json=payload)
+    response = await client.post(get_resend_activation_url(), json=payload)
     
     assert response.status_code == 202
     data = response.json()
@@ -32,7 +33,7 @@ async def test_resend_activation_success(client, auth_service):
 async def test_resend_activation_unknown_email_returns_no_token(client):
     """Test renvoi d'activation avec un email inconnu (pas de fuite d'information)."""
     payload = get_base_account_activation_request_payload("unknown@example.com")
-    response = await client.post("/auth/resend_activation", json=payload)
+    response = await client.post(get_resend_activation_url(), json=payload)
     
     assert response.status_code == 202
     data = response.json()
@@ -47,7 +48,7 @@ async def test_resend_activation_user_already_active_returns_no_token(client, au
     await auth_service.set_user_active(user.id, True)
     
     payload = get_base_account_activation_request_payload("already_active@example.com")
-    response = await client.post("/auth/resend_activation", json=payload)
+    response = await client.post(get_resend_activation_url(), json=payload)
     
     assert response.status_code == 202
     data = response.json()

@@ -7,6 +7,9 @@ from typing import Dict, Any
 from schemas import UserCreate
 from models import User
 
+# Import de l'app FastAPI pour le reverse lookup des URLs
+from main import app
+
 
 # Messages d'erreur de l'API
 LOGIN_BAD_CREDENTIALS = "Credentials are incorrect"
@@ -16,24 +19,49 @@ REGISTER_DUPLICATE_USERNAME = "Username already exists"
 REGISTER_DUPLICATE_EMAIL = "Email already exists"
 
 
+# Fonctions helper pour générer les URLs via FastAPI reverse lookup
+def get_register_url() -> str:
+    return str(app.url_path_for("register"))
+
+
+def get_login_url() -> str:
+    return str(app.url_path_for("login"))
+
+
+def get_logout_url() -> str:
+    return str(app.url_path_for("logout"))
+
+
+def get_refresh_url() -> str:
+    return str(app.url_path_for("refresh_token"))
+
+
+def get_activate_account_url() -> str:
+    return str(app.url_path_for("activate_account"))
+
+
+def get_resend_activation_url() -> str:
+    return str(app.url_path_for("resend_activation"))
+
+
+def get_request_reset_password_url() -> str:
+    return str(app.url_path_for("request_reset_password"))
+
+
+def get_reset_password_url() -> str:
+    return str(app.url_path_for("reset_password"))
+
+
+def get_current_user_url() -> str:
+    return str(app.url_path_for("get_current_user"))
+
+
 def get_base_register_payload(
     username: str = "testuser",
     email: str = "test@example.com",
     password: str = "testpassword123",
     confirm_password: str = None
 ) -> Dict[str, Any]:
-    """
-    Retourne un payload de base pour créer un utilisateur.
-    
-    Args:
-        username: Nom d'utilisateur
-        email: Email
-        password: Mot de passe
-        confirm_password: Confirmation du mot de passe (défaut: même que password)
-    
-    Returns:
-        Dict avec les champs obligatoires pour UserCreate
-    """
     if confirm_password is None:
         confirm_password = password
     return {
@@ -48,16 +76,6 @@ def get_base_login_form_data(
     username: str = "testuser",
     password: str = "testpassword123"
 ) -> Dict[str, str]:
-    """
-    Retourne des données de formulaire de base pour le login.
-    
-    Args:
-        username: Username ou email
-        password: Mot de passe
-    
-    Returns:
-        Dict avec les champs pour OAuth2PasswordRequestForm
-    """
     return {
         "username": username,
         "password": password

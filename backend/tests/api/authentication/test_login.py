@@ -13,6 +13,7 @@ from api.authentication import LOGIN_BAD_CREDENTIALS
 from tests.api.authentication.helpers import (
     get_base_login_form_data,
     get_base_login_headers,
+    get_login_url,
     LOGIN_REQUIRED_FIELDS,
     create_active_user,
 )
@@ -26,7 +27,7 @@ async def test_login_success_with_username(client, auth_service):
     
     form_data = get_base_login_form_data(username="logintest", password="password123")
     response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -45,7 +46,7 @@ async def test_login_success_with_email(client, auth_service):
     
     form_data = get_base_login_form_data(username="login2@example.com", password="password123")
     response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -65,7 +66,7 @@ async def test_login_username_vs_email_same_value(client, auth_service):
     # Login avec username
     form_data = get_base_login_form_data(username="samevalue", password="password123")
     response1 = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -74,7 +75,7 @@ async def test_login_username_vs_email_same_value(client, auth_service):
     # Login avec email
     form_data = get_base_login_form_data(username="samevalue@example.com", password="password123")
     response2 = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -89,7 +90,7 @@ async def test_login_wrong_password(client, auth_service):
     
     form_data = get_base_login_form_data(username="logintest3", password="wrongpassword")
     response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -104,7 +105,7 @@ async def test_login_nonexistent_user(client):
     """Test connexion avec un utilisateur inexistant (username)."""
     form_data = get_base_login_form_data(username="nonexistent", password="password123")
     response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -119,7 +120,7 @@ async def test_login_nonexistent_email(client):
     """Test connexion avec un utilisateur inexistant (email)."""
     form_data = get_base_login_form_data(username="nonexistent@example.com", password="password123")
     response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -143,7 +144,7 @@ async def test_login_inactive_user(client, auth_service, db_session):
     
     form_data = get_base_login_form_data(username="inactive", password="password123")
     response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -167,7 +168,7 @@ async def test_login_missing_required_fields(client, missing_field):
     del form_data[missing_field]  # Enlever le champ obligatoire
     
     response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -182,7 +183,7 @@ async def test_login_empty_credentials(client):
     # Username vide
     form_data = get_base_login_form_data(username="", password="password123")
     response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )
@@ -191,7 +192,7 @@ async def test_login_empty_credentials(client):
     # Password vide
     form_data = get_base_login_form_data(username="testuser", password="")
     response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=form_data,
         headers=get_base_login_headers()
     )

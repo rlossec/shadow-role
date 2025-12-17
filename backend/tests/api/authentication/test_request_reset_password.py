@@ -9,6 +9,7 @@ import pytest
 
 from tests.api.authentication.helpers import (
     get_base_password_reset_request_payload,
+    get_request_reset_password_url,
     create_inactive_user,
 )
 
@@ -20,7 +21,7 @@ async def test_request_reset_password_generates_token(client, auth_service):
     await create_inactive_user(auth_service, "forgot_user", "forgot@example.com", "forgotpass123")
     
     payload = get_base_password_reset_request_payload("forgot@example.com")
-    response = await client.post("/auth/request-reset-password", json=payload)
+    response = await client.post(get_request_reset_password_url(), json=payload)
     
     assert response.status_code == 202
     data = response.json()

@@ -12,6 +12,9 @@ from tests.api.authentication.helpers import (
     get_base_password_reset_confirm_payload,
     get_base_login_form_data,
     get_base_login_headers,
+    get_request_reset_password_url,
+    get_reset_password_url,
+    get_login_url,
     create_inactive_user,
     RESET_PASSWORD_BAD_TOKEN,
 )
@@ -26,7 +29,7 @@ async def test_reset_password_success(client, auth_service):
     
     # Demander la réinitialisation
     request_payload = get_base_password_reset_request_payload("reset@example.com")
-    forgot_response = await client.post("/auth/request-reset-password", json=request_payload)
+    forgot_response = await client.post(get_request_reset_password_url(), json=request_payload)
     assert forgot_response.status_code == 202
     reset_data = forgot_response.json()
     reset_token = reset_data.get("reset_token")
@@ -38,13 +41,13 @@ async def test_reset_password_success(client, auth_service):
         reset_token,
         "newpassword456"
     )
-    reset_response = await client.post("/auth/reset-password", json=reset_payload)
+    reset_response = await client.post(get_reset_password_url(), json=reset_payload)
     
     assert reset_response.status_code in {200, 204}
     
     # Vérifier que le nouveau mot de passe fonctionne
     login_response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=get_base_login_form_data(username="reset_user", password="newpassword456"),
         headers=get_base_login_headers()
     )
@@ -60,7 +63,7 @@ async def test_reset_password_invalid_token(client):
         "token-invalide",
         "whatever123"
     )
-    response = await client.post("/auth/reset-password", json=payload)
+    response = await client.post(get_reset_password_url(), json=payload)
     
     assert response.status_code == 400
     assert response.json()["detail"] == RESET_PASSWORD_BAD_TOKEN

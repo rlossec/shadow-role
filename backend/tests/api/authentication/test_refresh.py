@@ -13,6 +13,9 @@ from tests.api.authentication.helpers import (
     get_base_login_form_data,
     get_base_login_headers,
     get_base_refresh_payload,
+    get_login_url,
+    get_logout_url,
+    get_refresh_url,
     create_active_user,
 )
 
@@ -25,7 +28,7 @@ async def test_refresh_success(client, auth_service):
     
     # Login pour obtenir les tokens
     login_response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=get_base_login_form_data(username="refresh_user", password="refreshpass123"),
         headers=get_base_login_headers()
     )
@@ -34,7 +37,7 @@ async def test_refresh_success(client, auth_service):
     
     # Rafraîchir les tokens
     refresh_payload = get_base_refresh_payload(tokens["refresh_token"])
-    refresh_response = await client.post("/auth/refresh", json=refresh_payload)
+    refresh_response = await client.post(get_refresh_url(), json=refresh_payload)
     
     assert refresh_response.status_code == 200
     new_tokens = refresh_response.json()
@@ -52,7 +55,7 @@ async def test_refresh_success(client, auth_service):
     
     # Vérifier que le nouveau refresh token permet une nouvelle rotation
     second_refresh = await client.post(
-        "/auth/refresh",
+        get_refresh_url(),
         json=get_base_refresh_payload(new_tokens["refresh_token"])
     )
     assert second_refresh.status_code == 200
@@ -68,7 +71,7 @@ async def test_reusing_refresh_token_fails(client, auth_service):
     
     # Login pour obtenir les tokens
     login_response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=get_base_login_form_data(username="refresh_user3", password="refreshpass123"),
         headers=get_base_login_headers()
     )
@@ -77,14 +80,14 @@ async def test_reusing_refresh_token_fails(client, auth_service):
     
     # Premier refresh
     first_refresh = await client.post(
-        "/auth/refresh",
+        get_refresh_url(),
         json=get_base_refresh_payload(tokens["refresh_token"])
     )
     assert first_refresh.status_code == 200
     
     # Tentative de réutilisation du même refresh token (doit échouer)
     reuse_attempt = await client.post(
-        "/auth/refresh",
+        get_refresh_url(),
         json=get_base_refresh_payload(tokens["refresh_token"])
     )
     assert reuse_attempt.status_code == 401
@@ -98,7 +101,7 @@ async def test_logout_revokes_refresh_token(client, auth_service):
     
     # Login pour obtenir les tokens
     login_response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=get_base_login_form_data(username="logout_user", password="logoutpass123"),
         headers=get_base_login_headers()
     )
@@ -107,14 +110,14 @@ async def test_logout_revokes_refresh_token(client, auth_service):
     
     # Logout (révoque le refresh token)
     logout_response = await client.post(
-        "/auth/jwt/logout",
+        get_logout_url(),
         json=get_base_refresh_payload(tokens["refresh_token"])
     )
     assert logout_response.status_code == 204
     
     # Tentative de refresh après logout (doit échouer)
     refresh_after_logout = await client.post(
-        "/auth/refresh",
+        get_refresh_url(),
         json=get_base_refresh_payload(tokens["refresh_token"])
     )
     assert refresh_after_logout.status_code == 401
@@ -126,7 +129,7 @@ async def test_logout_revokes_refresh_token(client, auth_service):
 async def test_refresh_with_invalid_token_returns_401(client):
     """Test rafraîchissement avec un token invalide."""
     refresh_payload = get_base_refresh_payload("invalid-token")
-    response = await client.post("/auth/refresh", json=refresh_payload)
+    response = await client.post(get_refresh_url(), json=refresh_payload)
     
     assert response.status_code == 401
     assert response.json()["detail"] == "Token invalide ou expiré"
@@ -139,7 +142,7 @@ async def test_refresh_with_access_token_returns_401(client, auth_service):
     
     # Login pour obtenir les tokens
     login_response = await client.post(
-        "/auth/jwt/login",
+        get_login_url(),
         data=get_base_login_form_data(username="refresh_user2", password="refreshpass123"),
         headers=get_base_login_headers()
     )
@@ -148,7 +151,7 @@ async def test_refresh_with_access_token_returns_401(client, auth_service):
     
     # Tentative d'utiliser l'access token comme refresh token (doit échouer)
     response = await client.post(
-        "/auth/refresh",
+        get_refresh_url(),
         json=get_base_refresh_payload(tokens["access_token"])
     )
     

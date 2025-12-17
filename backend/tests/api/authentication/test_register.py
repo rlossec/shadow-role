@@ -10,6 +10,7 @@ import pytest
 from schemas import UserCreate
 from tests.api.authentication.helpers import (
     get_base_register_payload,
+    get_register_url,
     REGISTER_REQUIRED_FIELDS,
     REGISTER_DUPLICATE_USERNAME,
     REGISTER_DUPLICATE_EMAIL,
@@ -22,7 +23,7 @@ async def test_register_success(client):
     """Test enregistrement d'un utilisateur avec succès."""
     payload = get_base_register_payload()
     
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     
     assert response.status_code == 201
     data = response.json()
@@ -39,7 +40,7 @@ async def test_register_passwords_match(client):
         confirm_password="password123"
     )
     
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     
     assert response.status_code == 201
     data = response.json()
@@ -60,7 +61,7 @@ async def test_register_missing_required_fields(client, missing_field):
     payload = get_base_register_payload()
     del payload[missing_field]  # Enlever le champ obligatoire
     
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     
     assert response.status_code == 422
     errors = response.json()["detail"]
@@ -72,7 +73,7 @@ async def test_register_missing_required_fields(client, missing_field):
 @pytest.mark.asyncio
 async def test_register_missing_all_required_fields(client):
     """Test enregistrement sans aucun champ obligatoire."""
-    response = await client.post("/auth/register", json={})
+    response = await client.post(get_register_url(), json={})
     
     assert response.status_code == 422
     errors = response.json()["detail"]
@@ -88,7 +89,7 @@ async def test_register_invalid_email(client):
     """Test enregistrement avec un email invalide."""
     payload = get_base_register_payload(email="invalid-email")
     
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     
     assert response.status_code == 422
     errors = response.json()["detail"]
@@ -100,22 +101,22 @@ async def test_register_empty_fields(client):
     """Test enregistrement avec des champs vides."""
     # Username vide
     payload = get_base_register_payload(username="")
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     assert response.status_code == 422
     
     # Email vide
     payload = get_base_register_payload(email="")
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     assert response.status_code == 422
     
     # Password vide
     payload = get_base_register_payload(password="", confirm_password="")
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     assert response.status_code == 422
     
     # Confirm_password vide
     payload = get_base_register_payload(confirm_password="")
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     assert response.status_code == 422
 
 
@@ -127,7 +128,7 @@ async def test_register_passwords_do_not_match(client):
         confirm_password="different_password"
     )
     
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     
     assert response.status_code == 422
     errors = response.json()["detail"]
@@ -142,7 +143,7 @@ async def test_register_passwords_match_case_sensitive(client):
         confirm_password="password123"
     )
     
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     
     assert response.status_code == 422
     errors = response.json()["detail"]
@@ -166,7 +167,7 @@ async def test_register_duplicate_username(client, auth_service):
         username="duplicate",
         email="second@example.com"
     )
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     
     assert response.status_code == 400
     assert response.json()["detail"] == REGISTER_DUPLICATE_USERNAME
@@ -188,7 +189,7 @@ async def test_register_duplicate_email(client, auth_service):
         username="user2",
         email="duplicate@example.com"
     )
-    response = await client.post("/auth/register", json=payload)
+    response = await client.post(get_register_url(), json=payload)
     
     assert response.status_code == 400
     assert response.json()["detail"] == REGISTER_DUPLICATE_EMAIL
