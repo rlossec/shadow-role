@@ -15,7 +15,6 @@ from db.database import Base
 class MissionType(str, enum.Enum):
     MISSION = "mission"
     ROLE = "role"
-    HYBRID = "hybrid"
 
 
 class Mission(Base):

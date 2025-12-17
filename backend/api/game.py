@@ -16,7 +16,7 @@ from repositories.mission_repository import MissionRepository
 from .dependencies import get_game_repository, get_mission_repository, get_current_active_user
 
 router = APIRouter(
-    prefix="/api/games",
+    prefix="/games",
     tags=["games"]
 )
 

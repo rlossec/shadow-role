@@ -10,7 +10,7 @@ from .dependencies import get_player_repository, get_lobby_repository, get_curre
 
 
 router = APIRouter(
-    prefix="/api/players",
+    prefix="/players",
     tags=["players"]
 )
 

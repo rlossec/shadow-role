@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRouter
 
 from contextlib import asynccontextmanager
 
@@ -42,11 +43,18 @@ app.add_middleware(
     allow_headers=allowed_headers,
 )
 
-app.include_router(auth_router)
-app.include_router(game_router)
-app.include_router(lobby_router)
-app.include_router(player_router)
-app.include_router(mission_router)
+# Créer un router API principal avec le préfixe depuis les settings
+api_router = APIRouter(prefix=settings.API_PREFIX)
+
+# Inclure tous les routers sous le router API principal
+api_router.include_router(auth_router)
+api_router.include_router(game_router)
+api_router.include_router(lobby_router)
+api_router.include_router(player_router)
+api_router.include_router(mission_router)
+
+# Inclure le router API principal dans l'application
+app.include_router(api_router)
 
 # Route racine FastAPI
 @app.get("/")

@@ -5,16 +5,20 @@ from .mission_repository import MissionRepository
 from .player_repository import PlayerRepository
 from .token_repository import TokenRepository
 from .user_repository import UserRepository
-from .gametype_repository import GameTypeRepository
+from .round_repository import RoundRepository
+
 
 __all__ = [
     "JWTRepository",
+    "UserRepository",
+
+    "TokenRepository",
 
     "GameRepository",
-    "GameTypeRepository",
-    "LobbyRepository",
     "MissionRepository",
+
+    "LobbyRepository",
+    "RoundRepository",
     "PlayerRepository",
-    "TokenRepository",
-    "UserRepository",
+
 ]

@@ -12,7 +12,6 @@ from .token import (
     AccountActivationResponse,
 )
 from .game import GameCreate, GameResponse, GameUpdate
-from .game_type import GameTypeCreate, GameTypeResponse, GameTypeUpdate
 from .mission import MissionCreate, MissionResponse, MissionUpdate
 from .mission_assigned import MissionAssignedCreate, MissionAssignedResponse, MissionAssignedUpdate
 from .player import PlayerCreate, PlayerResponse, PlayerUpdate
@@ -37,9 +36,6 @@ __all__ = [
     "GameCreate",
     "GameResponse",
     "GameUpdate",
-    "GameTypeCreate",
-    "GameTypeResponse",
-    "GameTypeUpdate",
 
     "LobbyCreate",
     "LobbyResponse",
@@ -51,6 +47,7 @@ __all__ = [
     "MissionCreate",
     "MissionResponse",
     "MissionUpdate",
+    
     "MissionAssignedCreate",
     "MissionAssignedResponse",
     "MissionAssignedUpdate",

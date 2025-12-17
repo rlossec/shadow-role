@@ -3,12 +3,11 @@ from uuid import UUID
 from typing import List
 
 from fastapi import HTTPException
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-
-from repositories.gametype_repository import GameTypeRepository
 from models import Game, Tag
 from schemas import GameCreate, GameUpdate
 
@@ -33,12 +32,7 @@ class GameRepository:
         """Create a new game"""
         # Exclure tags du dump car c'est une relation many-to-many
         data = game_data.model_dump(exclude={"tags"})
-        if data["game_type_id"] is not None:
-            # Vérifier que le game_type_id correspond à un game_type existant
-            game_type_repo = GameTypeRepository(self.db)
-            game_type = await game_type_repo.get_game_type(data["game_type_id"])
-            if game_type is None:
-                raise HTTPException(status_code=404, detail="Game type not found")
+
         game = Game(**data)
         self.db.add(game)
         await self.db.flush()  # Flush pour avoir l'ID du jeu

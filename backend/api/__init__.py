@@ -5,6 +5,7 @@ from .lobby import router as lobby_router
 from .player import router as player_router
 from .mission import router as mission_router
 
+
 __all__ = [
     "auth_router",
     "game_router",

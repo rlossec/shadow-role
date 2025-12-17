@@ -5,27 +5,30 @@ from typing import Optional, Any, List, TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from models.game import GameTypeEnum
+
 if TYPE_CHECKING:
     from .mission import MissionResponse
 
 
 class GameBase(BaseModel):
     name: str
-    description: str
-    game_type_id: UUID
+    game_type: Optional[GameTypeEnum] = GameTypeEnum.MISSION
+    description: Optional[str] = None
     image_url: Optional[str] = None
-    min_players: int = 0
-    max_players: int = 0
+    min_players: Optional[int] = None
+    max_players: Optional[int] = None
     tags: Optional[List[str]] = None
 
 
 class GameCreate(GameBase):
-    pass
+    game_type: GameTypeEnum = GameTypeEnum.MISSION
 
 
 class GameUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    game_type: Optional[GameTypeEnum] = None
     image_url: Optional[str] = None
     min_players: Optional[int] = None
     max_players: Optional[int] = None

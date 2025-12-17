@@ -11,7 +11,7 @@ from .dependencies import get_mission_repository, get_current_active_user
 
 
 router = APIRouter(
-    prefix="/api/missions",
+    prefix="/missions",
     tags=["missions"]
 )
 

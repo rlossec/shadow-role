@@ -12,7 +12,7 @@ class RoundBase(BaseModel):
 
 
 class RoundCreate(RoundBase):
-    pass
+    round_number: int
 
 
 class RoundResponse(RoundBase):

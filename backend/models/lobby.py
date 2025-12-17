@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SQLEnum, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship

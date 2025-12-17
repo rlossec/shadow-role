@@ -23,6 +23,11 @@ class LobbyBase(BaseModel):
 
 
 class LobbyCreate(LobbyBase):
+    """Payload reçu côté API pour créer un lobby.
+
+    Le host est toujours le current_user côté backend
+    (voir api/lobby.py), donc host_id n'est pas fourni par le client.
+    """
     pass
 
 

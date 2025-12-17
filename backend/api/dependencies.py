@@ -25,6 +25,7 @@ def get_player_repository(db: AsyncSession = Depends(get_async_session)):
     return PlayerRepository(db)
 
 
+
 __all__ = [
     "get_authentication_service",
     "get_current_user",

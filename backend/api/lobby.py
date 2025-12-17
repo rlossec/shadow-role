@@ -16,7 +16,7 @@ from .dependencies import get_lobby_repository, get_game_repository, get_player_
 
 
 router = APIRouter(
-    prefix="/api/lobbies",
+    prefix="/lobbies",
     tags=["lobbies"]
 )
 
@@ -49,7 +49,7 @@ async def create_lobby(
             detail="Game not found"
         )
     
-    # Créer le lobby
+    # Créer le lobby en associant automatiquement le host au current_user
     lobby = await lobby_repository.create_lobby(lobby_data, current_user.id)
     return LobbyResponse.model_validate(lobby)
 

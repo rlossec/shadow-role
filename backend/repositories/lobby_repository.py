@@ -3,12 +3,14 @@ import secrets
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload, noload
 
-from models import Lobby
+from models import Lobby, Game, Player, MissionAssigned
 from schemas import LobbyCreate, LobbyUpdate
-from models.player import Player, PlayerStatus
+
+
+LOBBY_CODE_LENGTH = 8
 
 
 class LobbyRepository:
@@ -19,7 +21,7 @@ class LobbyRepository:
     
     def _generate_code(self) -> str:
         """Generate a unique lobby code"""
-        return secrets.token_urlsafe(6).upper()[:8]  # 8 caractères
+        return secrets.token_urlsafe(6).upper()[:LOBBY_CODE_LENGTH]
     
     async def get_lobby(self, lobby_id: UUID) -> Lobby | None:
         """Get a lobby by ID"""
@@ -27,12 +29,18 @@ class LobbyRepository:
         return result.unique().scalar_one_or_none()
     
     async def get_lobby_with_game_and_players(self, lobby_id: UUID) -> Lobby | None:
-        """Get a lobby with game and players"""
+        """Get a lobby with game and players (including user and missions for each player)"""
+        # Expirer tous les objets Lobby de la session pour forcer le rechargement
+        from sqlalchemy.orm import Session
+        if hasattr(self.db, 'expire_all'):
+            self.db.expire_all()
+        
         result = await self.db.execute(
             select(Lobby)
             .options(
-                selectinload(Lobby.game),
-                selectinload(Lobby.players)
+                selectinload(Lobby.game).selectinload(Game.tags),
+                selectinload(Lobby.players).selectinload(Player.user),
+                selectinload(Lobby.players).selectinload(Player.mission_assigned).selectinload(MissionAssigned.mission)
             )
             .where(Lobby.id == lobby_id)
         )
@@ -48,7 +56,7 @@ class LobbyRepository:
         result = await self.db.execute(
             select(Lobby)
             .options(
-                selectinload(Lobby.game),
+                selectinload(Lobby.game).selectinload(Game.tags),
                 selectinload(Lobby.players)
             )
             .where(Lobby.code == code)
@@ -76,9 +84,11 @@ class LobbyRepository:
         code = self._generate_code()
         while await self.get_lobby_by_code(code):
             code = self._generate_code()
-        
+
+        payload = lobby_data.model_dump()
+
         lobby = Lobby(
-            **lobby_data.model_dump(),
+            **payload,
             host_id=host_id,
             code=code,
         )
@@ -108,32 +118,6 @@ class LobbyRepository:
         updated_lobby = result.unique().scalar_one()
         return updated_lobby
 
-    async def add_player(self, lobby_id: UUID, user_id: UUID) -> None:
-        """Add a player to a lobby"""
-        player = Player(lobby_id=lobby_id, user_id=user_id, status=PlayerStatus.WAITING)
-        self.db.add(player)
-        await self.db.commit()
-        await self.db.refresh(player)
-        return player
-    
-    async def update_current_players(self, lobby_id: UUID) -> None:
-        """Update current_players count for a lobby"""
-        
-        result = await self.db.execute(
-            select(func.count(Player.id)).where(
-                and_(
-                    Player.lobby_id == lobby_id,
-                    Player.status.in_([PlayerStatus.WAITING, PlayerStatus.PLAYING])
-                )
-            )
-        )
-        count = result.scalar() or 0
-        
-        lobby = await self.get_lobby(lobby_id)
-        if lobby:
-            lobby.current_players = count
-            await self.db.commit()
-    
     async def delete_lobby(self, lobby_id: UUID) -> bool:
         """Delete a lobby"""
         lobby = await self.get_lobby(lobby_id)
