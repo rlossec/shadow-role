@@ -31,6 +31,7 @@ app = FastAPI(
 )
 
 # Configuration CORS
+# settings.ALLOWED_ORIGINS est déjà une liste grâce au validator
 allowed_origins = settings.ALLOWED_ORIGINS if settings.ALLOWED_ORIGINS else ["*"]
 allowed_methods = settings.ALLOWED_METHODS.split(",") if isinstance(settings.ALLOWED_METHODS, str) else ["*"]
 allowed_headers = settings.ALLOWED_HEADERS.split(",") if isinstance(settings.ALLOWED_HEADERS, str) else ["*"]
