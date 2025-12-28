@@ -19,7 +19,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.engine import Result
 
-from db.database import Base
+from app.db.database import Base
 
 
 @pytest.mark.asyncio

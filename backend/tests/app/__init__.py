@@ -1,8 +1,8 @@
 """
-Tests pour l'application ShadowRole.
+Package de tests reflétant la structure de app/.
 
-Pour exécuter tous les tests:
-    uv run pytest tests/ -v
+Pour exécuter tous les tests de l'application:
+    uv run pytest tests/app/ -v
     
 Pour exécuter une catégorie spécifique:
     uv run pytest tests/app/api/ -v

@@ -2,7 +2,7 @@
 Tests pour l'endpoint PUT /api/missions/{mission_id}.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/missions/test_update_mission.py -v
+    uv run pytest tests/app/api/missions/test_update_mission.py -v
 """
 import pytest
 from uuid import uuid4

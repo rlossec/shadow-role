@@ -2,7 +2,7 @@
 Tests pour l'endpoint PUT /api/games/{game_id}.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/games/test_update_game.py -v
+    uv run pytest tests/app/api/games/test_update_game.py -v
 """
 import pytest
 from uuid import uuid4

@@ -2,7 +2,7 @@
 Tests pour l'endpoint POST /api/missions.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/missions/test_create_mission.py -v
+    uv run pytest tests/app/api/missions/test_create_mission.py -v
 """
 import pytest
 

@@ -2,8 +2,8 @@
 Tests pour l'endpoint POST /auth/register.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/authentication/test_register.py -v
-    uv run pytest tests/api/authentication/test_register.py::test_register_success -v
+    uv run pytest tests/app/api/authentication/test_register.py -v
+    uv run pytest tests/app/api/authentication/test_register.py::test_register_success -v
 """
 import pytest
 

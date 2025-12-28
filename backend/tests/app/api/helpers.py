@@ -7,7 +7,7 @@ from app.models import User
 from app.schemas import UserCreate
 
 from app.services.auth import AuthenticationService
-
+from tests.app.api.authentication.helpers import get_login_url
 
 async def create_user_and_get_token(
     client: AsyncClient,
@@ -29,7 +29,6 @@ async def create_user_and_get_token(
     await auth_service.user_repository.update_user(user.id, user)
     
     # Obtenir le token
-    from tests.api.authentication.helpers import get_login_url
     response = await client.post(
         get_login_url(),
         data={"username": username, "password": password},

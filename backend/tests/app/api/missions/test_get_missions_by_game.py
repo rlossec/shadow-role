@@ -2,7 +2,7 @@
 Tests pour l'endpoint GET /api/missions/game/{game_id}.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/missions/test_get_missions_by_game.py -v
+    uv run pytest tests/app/api/missions/test_get_missions_by_game.py -v
 """
 import pytest
 

@@ -2,8 +2,8 @@
 Tests pour l'endpoint POST /auth/refresh.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/authentication/test_refresh.py -v
-    uv run pytest tests/api/authentication/test_refresh.py::test_refresh_success -v
+    uv run pytest tests/app/api/authentication/test_refresh.py -v
+    uv run pytest tests/app/api/authentication/test_refresh.py::test_refresh_success -v
 """
 import jwt
 import pytest

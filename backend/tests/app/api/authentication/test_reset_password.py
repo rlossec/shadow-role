@@ -2,8 +2,8 @@
 Tests pour l'endpoint POST /auth/reset-password.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/authentication/test_reset_password.py -v
-    uv run pytest tests/api/authentication/test_reset_password.py::test_reset_password_success -v
+    uv run pytest tests/app/api/authentication/test_reset_password.py -v
+    uv run pytest tests/app/api/authentication/test_reset_password.py::test_reset_password_success -v
 """
 import pytest
 

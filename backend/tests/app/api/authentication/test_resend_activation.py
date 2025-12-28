@@ -2,8 +2,8 @@
 Tests pour l'endpoint POST /auth/resend_activation.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/authentication/test_resend_activation.py -v
-    uv run pytest tests/api/authentication/test_resend_activation.py::test_resend_activation_success -v
+    uv run pytest tests/app/api/authentication/test_resend_activation.py -v
+    uv run pytest tests/app/api/authentication/test_resend_activation.py::test_resend_activation_success -v
 """
 import pytest
 

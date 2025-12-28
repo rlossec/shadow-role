@@ -2,8 +2,8 @@
 Tests pour l'endpoint POST /auth/activate-account.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/authentication/test_activate_account.py -v
-    uv run pytest tests/api/authentication/test_activate_account.py::test_activate_account_user_success -v
+    uv run pytest tests/app/api/authentication/test_activate_account.py -v
+    uv run pytest tests/app/api/authentication/test_activate_account.py::test_activate_account_user_success -v
 """
 import pytest
 from sqlalchemy import select

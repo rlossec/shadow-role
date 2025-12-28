@@ -2,7 +2,7 @@
 Tests pour l'endpoint GET /api/games.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/games/test_list_games.py -v
+    uv run pytest tests/app/api/games/test_list_games.py -v
 """
 import pytest
 

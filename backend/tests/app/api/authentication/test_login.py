@@ -2,8 +2,8 @@
 Tests pour l'endpoint POST /auth/jwt/login.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/authentication/test_login.py -v
-    uv run pytest tests/api/authentication/test_login.py::test_login_success_with_username -v
+    uv run pytest tests/app/api/authentication/test_login.py -v
+    uv run pytest tests/app/api/authentication/test_login.py::test_login_success_with_username -v
 """
 import pytest
 from sqlalchemy import select

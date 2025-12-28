@@ -2,7 +2,7 @@
 Tests pour l'endpoint GET /api/lobbies/{lobby_id}.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/lobbies/test_get_lobby.py -v
+    uv run pytest tests/app/api/lobbies/test_get_lobby.py -v
 """
 import pytest
 from uuid import uuid4

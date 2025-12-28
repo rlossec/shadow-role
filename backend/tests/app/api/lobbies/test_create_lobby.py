@@ -2,8 +2,8 @@
 Tests pour l'endpoint POST /api/lobbies.
 
 Pour exécuter ces tests:
-    uv run pytest tests/api/lobbies/test_create_lobby.py -v
-    uv run pytest tests/api/lobbies/test_create_lobby.py::test_create_lobby_success -v
+    uv run pytest tests/app/api/lobbies/test_create_lobby.py -v
+    uv run pytest tests/app/api/lobbies/test_create_lobby.py::test_create_lobby_success -v
 """
 import pytest
 from uuid import uuid4
