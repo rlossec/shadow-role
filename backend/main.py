@@ -4,12 +4,12 @@ from fastapi.routing import APIRouter
 
 from contextlib import asynccontextmanager
 
-from websocket.socket_server import sio_app
-from core.config import settings
+from app.websocket.socket_server import sio_app
+from app.core.config import settings
 
-from db.database import create_db_and_tables, close_db
+from app.db.database import create_db_and_tables, close_db
 
-from api import auth_router, game_router, lobby_router, player_router, mission_router
+from app.api import auth_router, game_router, lobby_router, player_router, mission_router
 
 
 
