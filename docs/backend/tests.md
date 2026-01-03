@@ -1,43 +1,38 @@
-# Tests backend
+# Tests du backend
 
-## Objectifs
+Ce document est une synthèse de la documentation des tests. Ils sont inclus dans le dossiers de [tests](../../backend/tests/)
 
-- Garantir la fiabilité des endpoints REST (statuts, payloads, erreurs).
-- Valider la logique métier des services (assignations, transitions d’état).
-- Vérifier la cohérence des schémas de données (relations, contraintes).
-- Assurer la robustesse du serveur WebSocket (auth, diffusion, gestion de rooms).
+## 📚 Documentation disponible
 
-## Outils
+### Dans `backend/tests/`
 
-- **pytest** : framework de tests principal.
-- **httpx.AsyncClient** : client asynchrone pour tester FastAPI.
-- **pytest-asyncio** : gestion de la boucle événementielle.
-- **faker** / factories locales : génération de données.
-- **sqlite en mémoire** pour les tests rapides (config dans `tests/conftest.py`).
+- **[synthese.md](../../backend/tests/synthese.md)** : 📊 **Récapitulatif complet de tous les tests par catégorie**
+- **[README.md](../../backend/tests/README.md)** : Guide pratique pour exécuter les tests
+- **[strategy.md](../../backend/tests/strategy.md)** : Stratégie de test et approche progressive
+- **[scenarios.md](../../backend/tests/scenarios.md)** : Scénarios de test E2E complets
+- **[flows.md](../../backend/tests/flows.md)** : Description des flux de jeu
+- **[routes.md](../../backend/tests/routes.md)** : Utilisation des noms de route dans les tests
 
-## Structure des tests
+## 🚀 Démarrage rapide
 
-```
-backend/tests/
-├── api/                 # Tests d’intégration REST
-│   └── authentication/  # Exemple : login, register, refresh
-├── services/            # Tests unitaires des services (à créer)
-├── websocket/           # Scénarios temps réel (à compléter)
-├── fixtures/            # Fixtures partagées (db, client, données)
-└── README.md            # Consignes spécifiques
+### Exécuter tous les tests
+
+```bash
+uv run pytest tests/ -v
 ```
 
-## Priorités de couverture
+### Exécuter une catégorie spécifique
 
-1. **Auth** : création compte, login, refresh, protection routes.
-2. **Lobbies** : création, rejoindre, démarrer, sécurité (accès autorisés).
-3. **GameService** : assignation rôles/missions, transitions `waiting → running → ended`.
-4. **WebSocket** : connexion JWT, broadcast `lobby_joined`, cycle `start_game`.
+```bash
+# Tests de services
+uv run pytest tests/app/services/ -v
 
-## Commandes
+# Tests WebSocket unitaires
+uv run pytest tests/app/websocket/unit/ -v
 
-- `uv run pytest` : exécuter toute la suite.
-- `uv run pytest backend/tests/api` : cibler les tests REST.
-- `uv run pytest backend/tests/websocket` : lancer les scénarios temps réel (prévoir un serveur test).
+# Tests WebSocket E2E
+uv run pytest tests/app/websocket/e2e/ -v -s
 
-> Documenter ici les nouveaux dossiers de tests ou pratiques recommandées au fur et à mesure.
+# Tests API
+uv run pytest tests/app/api/ -v
+```

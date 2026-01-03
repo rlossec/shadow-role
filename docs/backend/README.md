@@ -1,23 +1,11 @@
 # Backend — Documentation de référence
 
-Ce README centralise les liens vers la documentation du backend. Utilisez-le comme point d’entrée pour naviguer vers les sections détaillées.
-
-## Documentation
-
-On retrouve les éléments clés détaillé dans ces fichiers :
-
-- [Référence API REST](./api_reference.md)
-- [Documentation WebSocket](./websocket_doc.md)
-- [Tests backend](./tests.md)
-
 ## Architecture générale
 
 Le backend ShadowRole repose sur **FastAPI** avec
 
 - une API REST
 - un ajout **Socket.IO** pour la communication temps réel.
-
-L’organisation du code suit une approche inspirée de la _Clean Architecture_ : séparation claire entre couches API, services métier, accès aux données et WebSocket.
 
 ## Arborescence
 
@@ -37,3 +25,28 @@ backend/
 ├── websocket/            # Gestion Socket.IO (events, manager…)
 └── main.py               # Point d'entrée FastAPI
 ```
+
+## Documentation
+
+### 📖 Documentation Principale
+
+- **[Orchestration Handlers ↔ Services](./orchestration.md)** - **Référence complète** : Détails de l'orchestration entre handlers et services, responsabilités et méthodes principales de tous les composants
+
+### 📚 Documentation par Thème
+
+#### Architecture
+
+- [Architecture Backend](./backend_architecture.md) - Vue d'ensemble de l'architecture et des couches
+
+#### API et Communication
+
+- [Référence API REST](./API_REFERENCE.md) - Endpoints REST FastAPI
+- [WebSocket](./websocket.md) - Communication temps réel Socket.IO
+
+#### Authentification
+
+- [Authentification](./authentication.md) - Système d'authentification JWT complet
+
+#### Tests
+
+- [Tests backend](./tests.md) - Tests unitaires et d'intégration

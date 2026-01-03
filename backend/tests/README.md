@@ -1,5 +1,13 @@
 # Tests du backend Shadow Role
 
+## 📚 Documentation
+
+- **[Synthèse des tests](./synthese.md)** : Récapitulatif complet de tous les tests par catégorie
+- **[Stratégie de test](./strategy.md)** : Approche et philosophie de test
+- **[Scénarios de test](./scenarios.md)** : Scénarios E2E complets
+- **[Flux de jeu](./flows.md)** : Description des flux de jeu
+- **[Utilisation des routes](./routes.md)** : Guide pour utiliser les noms de route
+
 ## 📁 Structure
 
 ```
@@ -51,7 +59,11 @@ uv run pytest --cov=backend --cov-report=html # Avec couverture et rapport HTML 
 
 ## 📋 Types de tests
 
-### Tests d'authentification
+### API authentification
+
+Commande : `uv run pytest tests/app/api/authentication/`
+
+### API authentification
 
 Tests pour les endpoints d'authentification (`/auth/register`, `/auth/jwt/login`).
 
