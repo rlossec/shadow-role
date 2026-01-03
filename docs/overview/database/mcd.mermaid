@@ -42,7 +42,7 @@ erDiagram
         created_at datetime
         updated_at datetime
         tags string[]
-        game_type_id uuid FK
+        game_type enum "mission | role | hybrid"
     }
 
     MISSION {

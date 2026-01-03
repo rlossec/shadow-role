@@ -1,201 +1,77 @@
-# 🔄 Flux de communication — ShadowRole
+# 🔄 Communication — ShadowRole
 
-Ce document décrit la manière dont les différents éléments du système **communiquent entre eux** pendant une partie.  
-Il couvre à la fois les **flux REST** et les **flux WebSocket**.
+Ce document décrit comment les différents composants du système **communiquent entre eux** : Frontend, Backend (API REST et WebSocket), et Base de données.
 
----
+## 🧭 Vue d'ensemble
 
-## 🧭 Vue générale
+Shadow Role utilise deux canaux de communication principaux :
 
-```mermaid
-flowchart LR
-subgraph Frontend["🎮 Client React (Vite + TS)"]
-    A1["LobbyPage"]
-    A2["useWebSocket Hook"]
-end
-
-subgraph Backend["⚙️ Backend FastAPI"]
-    B1["REST API (/api/*)"]
-    B2["WebSocket (/ws/lobby/{id})"]
-    B3["GameService"]
-    B4["ConnectionManager"]
-end
-
-DB["🗄️ Database (PostgreSQL / SQLAlchemy)"]
-
-A1 -->|HTTP / Axios| B1
-A2 -->|Socket.IO| B2
-B2 --> B3
-B2 --> B4
-B3 --> DB
-DB --> B3
-B3 -->|Résultat logique| B2
-B2 -->|Broadcast| A2
-```
-
----
-
-## ⚙️ 1. Communication REST (avant le temps réel)
-
-Certaines actions passent par l’API REST, notamment :
-
-| Action               | Endpoint                                | Description                                |
-| -------------------- | --------------------------------------- | ------------------------------------------ |
-| 🔑 Authentification  | `/api/auth/login`, `/api/auth/register` | Retourne un token JWT                      |
-| 🏠 Création de lobby | `/api/lobbies/create`                   | Crée un lobby vide et définit un hôte      |
-| 📋 Liste des lobbies | `/api/lobbies`                          | Récupère les lobbies disponibles           |
-| 💡 Suggestion        | `/api/missions/suggest`                 | Permet à un joueur de proposer une mission |
-| 📜 Historique        | `/api/games/history`                    | Liste les anciennes parties                |
-
-Ces appels REST sont faits **avant** ou **entre** les sessions WebSocket.
-
----
-
-## ⚡ 2. Communication WebSocket — pendant la partie
-
-Chaque lobby correspond à une **room Socket.IO** :
-
-`/ws/lobby/{lobby_id}`
-
-Les clients (joueurs) s’y connectent avec leur JWT.
-
-Une fois connectés, toutes les actions temps réel (join, start, mission, score...) passent par cette socket.
-
----
-
-### 🧩 Schéma séquentiel complet
-
-Ce diagramme illustre le **cycle de communication WebSocket** pendant une partie.
+- **API REST** : Pour les opérations CRUD, l'authentification et la gestion des ressources
+- **WebSocket (Socket.IO)** : Pour la communication temps réel pendant les parties (lobbies, jeu en cours)
 
 ```mermaid
-sequenceDiagram
-    participant J as Joueur (Client React)
-    participant WS as WebSocket /ws/lobby/{id}
-    participant G as GameService
-    participant DB as Base de données
+flowchart TB
+    subgraph Frontend["🎮 Frontend (React + TypeScript)"]
+        A1["Pages & Composants"]
+        A2["Axios Client<br/>(REST API)"]
+        A3["Socket.IO Client<br/>(WebSocket)"]
+    end
 
-    Note over J,WS: Connexion au lobby
-    J->>WS: Connexion (JWT)
-    WS-->>J: Confirmation + état du lobby actuel
-    J->>WS: "join_lobby" { user_id, color }
-    WS->>G: game_service.join_lobby()
-    G->>DB: INSERT Player
-    WS-->>J: user_list mise à jour
-    WS-->>Tous: "lobby_joined" broadcast
+    subgraph Backend["⚙️ Backend (FastAPI)"]
+        B1["REST API<br/>(/api/*)"]
+        B2["WebSocket Server<br/>(/ws/socket.io)"]
+        B3["Services Métier"]
+        B4["Repositories"]
+    end
 
-    Note over WS,G: L'host démarre la partie
-    Host->>WS: "start_game" { game_type }
-    WS->>G: start_game(lobby_id)
-    G->>DB: Crée GameSession
-    G-->>WS: Rôles/Missions attribués
-    WS-->>Chaque joueur: "game_started" (vue personnalisée)
+    subgraph Storage["💾 Stockage"]
+        DB["🗄️ Base de Données<br/>(PostgreSQL)"]
+        MEM["🧠 Mémoire<br/>(WebSocketManager)"]
+    end
 
-    Note over J,WS: Phase de jeu (vocal, déductions)
-    J->>WS: "guess_submitted" { target, guess }
-    WS->>G: game_service.submit_guess()
-    G->>DB: Met à jour le score
-    WS-->>Tous: "score_update"
-
-    Note over Host,WS: Validation et fin de manche
-    Host->>WS: "end_round"
-    WS->>G: game_service.end_round()
-    G->>DB: Sauvegarde scores finaux
-    WS-->>Tous: "round_ended"
-
-    Note over Host,WS: Fin de partie
-    Host->>WS: "end_game"
-    G->>DB: Clôture GameSession
-    WS-->>Tous: "game_ended"
-
+    A1 --> A2
+    A1 --> A3
+    A2 -->|HTTP/HTTPS<br/>JWT Bearer| B1
+    A3 -->|Socket.IO<br/>JWT dans auth| B2
+    B1 --> B3
+    B2 --> B3
+    B3 --> B4
+    B4 --> DB
+    DB --> B4
+    B4 --> B3
+    B3 --> B1
+    B3 --> B2
+    B2 -->|Connexions actives<br/>Rooms Socket.IO| MEM
+    MEM --> B2
+    B2 -->|Broadcast Events| A3
+    B1 -->|JSON Response| A2
 ```
 
----
+## 📡 Communication REST API
 
-## 🧠 3. Rôle des composants backend
+L'API REST est utilisée pour toutes les opérations qui ne nécessitent pas de temps réel :
 
-### **ConnectionManager**
+- ✅ **Authentification** : login, logout, refresh token, activation, réinitialisation de mot de passe
+- ✅ **Gestion des ressources** : CRUD sur les jeux, missions, lobbies
+- ✅ **Consultation** : Lister les lobbies, obtenir les détails d'un joueur, récupérer les missions
+- ✅ **Opérations ponctuelles** : Actions ne nécessitant pas de synchronisation en temps réel
 
-Gère la couche WebSocket :
+📖 **Voir [Référence API REST](../backend/API_REFERENCE.md)** pour la liste complète des endpoints.
 
-- Authentifie le joueur via JWT.
-- L’ajoute dans la room correspondant au lobby.
-- Transmet les événements entrants à `GameService`.
-- Diffuse les événements sortants à tous les clients du lobby.
+## ⚡ Communication WebSocket
 
-Exemple :
+Les WebSockets sont utilisés pour la communication temps réel pendant les parties et dans les lobbies :
 
-```python
-await manager.broadcast("lobby_joined", data, room=lobby_id)
+- ✅ **Dans un lobby** : Rejoindre/quitter, s'inscrire comme joueur, synchronisation d'état
+- ✅ **Pendant une partie** : Démarrage, phases de jeu, suggestions, rounds, validation
+- ✅ **Temps réel** : Broadcast d'événements à tous les membres d'un lobby
+- ✅ **Notifications** : Événements qui doivent être synchronisés immédiatement entre clients
 
-```
+📖 **Voir [Documentation WebSocket](../backend/websocket.md)** pour plus de détails sur les événements et workflows.
 
----
+## 📚 Documentation détaillée
 
-### **GameService**
-
-C’est le “cerveau” de la partie :
-
-- Gère les états du jeu (`waiting`, `running`, `ended`)
-- Attribue les rôles/missions
-- Met à jour les scores
-- Sauvegarde les états dans la base
-
-Exemple :
-
-```python
-class GameService:
-    async def start_game(self, lobby_id):
-        players = await self.repo.get_players(lobby_id)
-        missions = await self.repo.assign_missions(players)
-        return GameState(players=players, missions=missions, status="running")
-
-```
-
----
-
-## 🔁 4. Événements WebSocket standardisés
-
-| Type               | Direction        | Payload                | Description                       |
-| ------------------ | ---------------- | ---------------------- | --------------------------------- |
-| `join_lobby`       | client → serveur | `{ user_id, color }`   | Un joueur rejoint la room         |
-| `lobby_joined`     | serveur → tous   | `{ user: [...] }`      | Liste mise à jour des joueurs     |
-| `start_game`       | host → serveur   | `{ game_type }`        | L’host démarre la partie          |
-| `game_started`     | serveur → tous   | `{ game: {...} }`      | Début de partie avec état initial |
-| `mission_assigned` | serveur → joueur | `{ mission }`          | Mission secrète personnelle       |
-| `guess_submitted`  | joueur → serveur | `{ target, guess }`    | Proposition du joueur             |
-| `score_update`     | serveur → tous   | `{ player_id, score }` | Mise à jour des scores            |
-| `round_ended`      | serveur → tous   | `{ results }`          | Fin de manche                     |
-| `game_ended`       | serveur → tous   | `{ summary }`          | Fin de partie globale             |
-
----
-
-## 📡 5. Exemple de flux en front (React)
-
-```tsx
-// Connexion
-const socket = io(`${API_URL}/ws/lobby/${lobbyId}`, {
-  auth: { token: user.jwt },
-});
-
-// Écoute des événements
-socket.on("lobby_joined", updatePlayers);
-socket.on("game_started", setGameState);
-socket.on("score_update", updateScores);
-
-// Émission d’actions
-socket.emit("join_lobby", { user_id, color });
-socket.emit("start_game", { game_type: "roles" });
-socket.emit("guess_submitted", { target, guess });
-```
-
----
-
-## 📊 6. Synthèse des responsabilités
-
-| Couche               | Responsabilité principale                                               |
-| -------------------- | ----------------------------------------------------------------------- |
-| **Frontend (React)** | Émet et écoute les événements WebSocket, gère l’état du jeu côté client |
-| **WebSocket Server** | Gère les connexions et route les événements                             |
-| **GameService**      | Contient la logique de partie (états, rôles, missions, scores)          |
-| **Database**         | Persiste les entités de jeu et leurs évolutions                         |
-| **REST API**         | Gère les actions non temps réel (auth, création, suggestions)           |
+- **[Référence API REST](../backend/API_REFERENCE.md)** : Liste complète des endpoints REST avec leurs paramètres et réponses
+- **[Documentation WebSocket](../backend/websocket.md)** : Architecture, événements, workflows et exemples d'utilisation
+- **[Architecture Backend](../backend/backend_architecture.md)** : Vue d'ensemble de l'architecture backend
+- **[Authentification](../backend/authentication.md)** : Détails sur JWT et l'authentification
